@@ -1,0 +1,20 @@
+Robotic arm Project Spec
+Description:
+
+As part of the Space Robotics module, students learn about the forward and inverse kinematics of a robotic arm, such as might be used on a planetary rover. 
+Although the equations are taught and examples worked through, there is currently no physical robotic arm to test their solutions on.
+
+This project is to develop a portable simulator of a 5- or 6-DoF robotic arm, that can be visualised in 3D in a web browser (using a framework such as three.js) and which can be used to try out solutions to kinematics problems. 
+The arm and its environment will be visualised in a 3D window with a moveable viewpoint, and as a minimum will accept joint angles as input (for a forward kinematic solution), 
+or a desired 3D target coordinate (for an inverse kinematic solution), with an indication of the end-point coordinates of the arm's effector and its distance from the desired target after movement has taken place.
+
+
+
+Desirable additions to the basic scenario could include some or all of:
+
+Variable arm configuration (perhaps using XML)
+Sequences of joint positions and motor speeds to allow complex movements
+Addition of physics engine to model collisions of arm with self or environment
+Simulation of end-effector(s), e.g. simple gripper to pick up simluated "rocks"
+Generalised kinematic model using D-H parameters and matrices
+Calculation of torque and power during operation
