@@ -11,7 +11,7 @@
  <!-- <script src="lib/uclass_shaders.js"></script> -->
 <script src="lib/stats.min.js"></script>
 <script src="lib/dat.gui.min.js"></script>
-<!-- <script src="lib/tween.min.js"></script> -->
+<script src="lib/tween.min.js"></script>
 <script src="lib/sprintf.js"></script>
 
 
@@ -60,8 +60,9 @@ function fillScene() {
 				specular: 0x279933,
 				shininess: 100
 		});
-		var base = new THREE.Mesh(new THREE.CubeGeometry(50,50,30,30),robotBaseMaterial);
-		base.rotation.x = 90 * Math.PI / 180;
+		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
+		//base.rotation.x = 90 * Math.PI / 180;
+		base.position.y =5;
 		scene.add(base);
 		forearm = new THREE.Object3D();
 		var faLength = 100;
@@ -76,9 +77,9 @@ function fillScene() {
 		effector.position.y = faLength;
 		forearm.add(effector);
 		arm.add(forearm);
-
+		arm.position.y = arm.position.y + 10;
 		scene.add(arm);
-		
+
 }
 function createRobotExtender(part, length, material) {
 		// var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(22,22,6,32),material);
@@ -143,6 +144,7 @@ function init() {
 		cameraControls.target.set(0, 120, 0);
 		camera.position.set(-102, 177, 20);
 		cameraControls.target.set(-13, 60, 2);
+		//var tween = new TWEEN.Tween(rotation).to(10* Math.PI / 180 , 2000);
 		fillScene();
 }
 function addToDOM() {
@@ -203,12 +205,38 @@ function render() {
 				fillScene();
 				drawHelpers();
 		}
+
+		// rotateAngle(arm, y, effectController.uy);
+		// rotateAngle(arm, z, effectController.uz* Math.PI / 180);
+		// rotateAngle(effector, z, effectController.ez* Math.PI / 180);
+		// rotateAngle(forearm, z, effectController.fz* Math.PI / 180);
 		arm.rotation.y = effectController.uy * Math.PI / 180;
+		// if(arm.rotation.y != effectController.uy){
+		// 		console.log(arm.rotation.y);
+		// }
 		arm.rotation.z = effectController.uz * Math.PI / 180;
 		effector.rotation.z = effectController.ez * Math.PI / 180;
 		forearm.rotation.z = effectController.fz * Math.PI / 180;
 		renderer.render(scene, camera);
 }
+
+// function rotateAngle(part, axis, destAngle){
+// 	var destAngleDeg = destAngle* Math.PI / 180;
+//
+// 	//console.log(destAngle);
+// 	// console.log(arm.rotation.y);
+// 	// console.log(destAngle);
+// 	if(arm.rotation.y != destAngleDeg){
+// 		if(arm.rotation.y < destAngleDeg){
+// 			arm.rotation.y = arm.rotation.y + 0.001;
+// 		}
+// 		else if (arm.rotation.y > destAngleDeg) {
+// 			arm.rotation.y = arm.rotation.y - 0.001;
+// 		}
+// 	}
+//
+//
+// }
 function setupGui() {
 		effectController = {
 				newGridX: gridX,
@@ -229,10 +257,10 @@ function setupGui() {
 		h.add(effectController, "newGround").name("Show ground");
 		h.add(effectController, "newAxes").name("Show axes");
 		h = gui.addFolder("Arm angles");
-		h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y");
-		h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z");
-		h.add(effectController, "fz", -180.0, 180.0, 0.025).name("Forearm z");
-		h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z");
+		h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){console.log(uy)});
+		h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){console.log(uz)});
+		h.add(effectController, "fz", -180.0, 180.0, 0.025).name("Forearm z").onChange(function(fz){console.log(fz)});
+		h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){console.log(ez)});
 }
 try {
 		init();
