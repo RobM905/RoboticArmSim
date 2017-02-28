@@ -69,12 +69,17 @@ function fillScene() {
 		createRobotExtender(forearm, faLength, robotForearmMaterial);
 		arm = new THREE.Object3D();
 		var uaLength = 100;
+		var eLength = 50;
 		effector = new THREE.Object3D();
-		createRobotExtender(effector, faLength, robotForearmMaterial);
+		createRobotExtender(effector, eLength, robotForearmMaterial);
 		arm = new THREE.Object3D();
 		createRobotCrane(arm, uaLength, robotUpperArmMaterial);
+		endEffector = new THREE.Object3D();
+		createEndEffector(endEffector, robotUpperArmMaterial);
 		forearm.position.y = uaLength;
 		effector.position.y = faLength;
+		endEffector.position.y = eLength;
+		effector.add(endEffector);
 		forearm.add(effector);
 		arm.add(forearm);
 		arm.position.y = arm.position.y + 10;
@@ -94,7 +99,7 @@ function createRobotExtender(part, length, material) {
 		}
 		cylinder = new THREE.Mesh(new THREE.CylinderGeometry(15,15,40,32),material);
 		cylinder.rotation.x = 90 * Math.PI / 180;
-		cylinder.position.y = length;
+		cylinder.position.y = 0;
 		part.add(cylinder);
 }
 function createRobotCrane(part, length, material) {
@@ -102,10 +107,11 @@ function createRobotCrane(part, length, material) {
 		box.position.y = length / 2;
 		part.add(box);
 
-    cylinder = new THREE.Mesh(new THREE.CylinderGeometry(15,15,40,32),material);
-		cylinder.rotation.x = 90 * Math.PI / 180;
-		cylinder.position.y = length;
-		part.add(cylinder);
+    	
+	cylinder1 = new THREE.Mesh(new THREE.CylinderGeometry(15,15,40,32),material);
+		cylinder1.rotation.x = 90 * Math.PI / 180;
+		cylinder1.position.y = 0;
+		part.add(cylinder1);
 		// var sphere = new THREE.Mesh(new THREE.SphereGeometry(20,32,16),material);
 		// sphere.position.y = length;
 		// part.add(sphere);
@@ -120,9 +126,14 @@ function createRobotBody(part, length, material) {
 		var box = new THREE.Mesh(new THREE.CubeGeometry(12,length / 4,110),material);
 		box.position.y = length / 2;
 		part.add(box);
-		var sphere = new THREE.Mesh(new THREE.SphereGeometry(20,32,16),material);
-		sphere.position.y = length;6
-		part.add(sphere);
+		//var sphere = new THREE.Mesh(new THREE.SphereGeometry(20,32,16),material);
+		//sphere.position.y = length;6
+		//part.add(sphere);
+}
+function createEndEffector(part, material){
+		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(15,15,10,32),material);
+		cylinder.position.y = 0;
+		part.add(cylinder);
 }
 function init() {
 
