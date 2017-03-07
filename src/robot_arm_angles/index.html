@@ -21,13 +21,13 @@
   <fieldset>
     <h2>Json File</h2>
      <input type='file' id='fileinput'>
-     <input type='button' id='btnLoad' value='Load' onclick='loadFile();'>
+     <input type='button' id='btnLoad' value='Load' onclick='loadFile(createNewArm);'>
   </fieldset>
 </form>
 
 <script>
 
-function loadFile() {
+function loadFile(callback) {
 	 var input, file, fr;
 
 	 if (typeof window.FileReader !== 'function') {
@@ -48,15 +48,15 @@ function loadFile() {
 	 else {
 		 file = input.files[0];
 		 fr = new FileReader();
-		 fr.onload = receivedText;
-		 fr.readAsText(file);
+		 fr.onload = function (e){
+       result = e.target.result;
+  		  var JsonArray = JSON.parse(result);
+        callback(JsonArray);
+     };
+	   fr.readAsText(file);
 	 }
 
-	 function receivedText(e) {
-		 lines = e.target.result;
-		 var newArr = JSON.parse(lines);
-		 console.log(newArr);
-	 }
+
  }
 
 
@@ -69,6 +69,108 @@ var gridZ = false;
 var axes = true;
 var ground = true;
 var arm, forearm, body, effector;
+
+function createNewArm(armConfig){
+  // console.log(scene);
+  while (scene.children.length)
+    {
+    scene.remove(scene.children[0]);
+    }
+
+    var ambientLight = new THREE.AmbientLight(0x222222);
+		var light = new THREE.DirectionalLight(0xFFFFFF,1.0);
+		light.position.set(200, 400, 500);
+		var light2 = new THREE.DirectionalLight(0xFFFFFF,1.0);
+		light2.position.set(-500, 250, -200);
+		scene.add(ambientLight);
+		scene.add(light);
+		scene.add(light2);
+		var robotBaseMaterial = new THREE.MeshPhongMaterial({
+				color: 0x6E23BB,
+				specular: 0x6E23BB,
+				shininess: 20
+		});
+		var robotForearmMaterial = new THREE.MeshPhongMaterial({
+				color: 0xF4C154,
+				specular: 0xF4C154,
+				shininess: 100
+		});
+		var robotUpperArmMaterial = new THREE.MeshPhongMaterial({
+				color: 0x95E4FB,
+				specular: 0x95E4FB,
+				shininess: 100
+		});
+		var robotBodyMaterial = new THREE.MeshPhongMaterial({
+				color: 0x279933,
+				specular: 0x279933,
+				shininess: 100
+		});
+
+
+		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
+		//base.rotation.x = 90 * Math.PI / 180;
+		base.position.y =5;
+		scene.add(base);
+    drawHelpers();
+  //  console.log(armConfig);
+    arm = new THREE.Object3D();
+    for (x in armConfig['arm']) {
+
+    //console.log(armConfig['arm'][x]);
+    var tempArm = new THREE.Object3D();
+    //console.log(tempArm);
+    var length = armConfig['arm'][x]['length'];
+    if(armConfig['arm'][x]['type'] == 'crane'){
+      createRobotCrane(tempArm, length, robotUpperArmMaterial);
+      armConfig['arm'][x]['object'] = tempArm;
+      //arm.add(tempArm);
+    }
+    else if(armConfig['arm'][x]['type'] == 'extender'){
+      createRobotExtender(tempArm, length, robotForearmMaterial);
+      armConfig['arm'][x]['object'] = tempArm;
+    //  tempArm.position.y = armConfig['arm'][x-1]['length'];
+      //arm.add(tempArm);
+    }
+
+
+}
+
+  for (var i = armConfig['arm'].length-1; i != -1; --i) {
+    console.log(i);
+    if(i != 0){
+      var armObject = armConfig['arm'][i]['object'];
+      armObject.position.y = armConfig['arm'][i-1]['length'];
+      armConfig['arm'][i-1]['object'].add(armObject);
+    }
+    else{
+      arm.add(armConfig['arm'][i]['object']);
+    }
+        console.log(armObject);
+  }
+  scene.add(arm);
+  console.log(armConfig['arm']);
+		//  forearm = new THREE.Object3D();
+		//  var faLength = 100;
+		// createRobotExtender(forearm, faLength, robotForearmMaterial);
+		// var uaLength = 100;
+		// var eLength = 50;
+		// effector = new THREE.Object3D();
+		// createRobotExtender(effector, eLength, robotForearmMaterial);
+		// arm = new THREE.Object3D();
+		// createRobotCrane(arm, uaLength, robotUpperArmMaterial);
+		// endEffector = new THREE.Object3D();
+		// createEndEffector(endEffector, robotUpperArmMaterial);
+		// forearm.position.y = uaLength;
+		// effector.position.y = faLength;
+		// endEffector.position.y = eLength;
+		// effector.add(endEffector);
+		// forearm.add(effector);
+		// arm.add(forearm);
+		// arm.position.y = arm.position.y + 10;
+		// scene.add(arm);
+
+
+  }
 function fillScene() {
 		scene = new THREE.Scene();
 		//scene.fog = new THREE.Fog(0x808080,2000,4000);
@@ -100,6 +202,8 @@ function fillScene() {
 				specular: 0x279933,
 				shininess: 100
 		});
+
+
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
 		//base.rotation.x = 90 * Math.PI / 180;
 		base.position.y =5;
@@ -107,12 +211,12 @@ function fillScene() {
 		forearm = new THREE.Object3D();
 		var faLength = 100;
 		createRobotExtender(forearm, faLength, robotForearmMaterial);
-		arm = new THREE.Object3D();
 		var uaLength = 100;
 		var eLength = 50;
 		effector = new THREE.Object3D();
 		createRobotExtender(effector, eLength, robotForearmMaterial);
 		arm = new THREE.Object3D();
+
 		createRobotCrane(arm, uaLength, robotUpperArmMaterial);
 		endEffector = new THREE.Object3D();
 		createEndEffector(endEffector, robotUpperArmMaterial);
@@ -122,7 +226,7 @@ function fillScene() {
 		effector.add(endEffector);
 		forearm.add(effector);
 		arm.add(forearm);
-		arm.position.y = arm.position.y + 10;
+		//arm.position.y = arm.position.y + 10;
 		scene.add(arm);
 
 }
@@ -276,6 +380,7 @@ function render() {
 		arm.rotation.z = effectController.uz * Math.PI / 180;
 		effector.rotation.z = effectController.ez * Math.PI / 180;
 		forearm.rotation.z = effectController.fz * Math.PI / 180;
+    //console.log(new THREE.Vector3().setFromMatricPosition(endEffector));
 		renderer.render(scene, camera);
 }
 
@@ -297,30 +402,33 @@ function render() {
 //
 // }
 function setupGui() {
-		effectController = {
-				newGridX: gridX,
-				newGridY: gridY,
-				newGridZ: gridZ,
-				newGround: ground,
-				newAxes: axes,
-				uy: 0.0,
-				uz: 0.0,
-				ez: 0.0,
-				fz: 0.0
-		};
-		var gui = new dat.GUI();
-		var h = gui.addFolder("Grid display");
-		h.add(effectController, "newGridX").name("Show XZ grid");
-		h.add(effectController, "newGridY").name("Show YZ grid");
-		h.add(effectController, "newGridZ").name("Show XY grid");
-		h.add(effectController, "newGround").name("Show ground");
-		h.add(effectController, "newAxes").name("Show axes");
-		h = gui.addFolder("Arm angles");
-		h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){console.log(uy)});
-		h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){console.log(uz)});
-		h.add(effectController, "fz", -120.0, 120.0, 0.025).name("Forearm z").onChange(function(fz){console.log(fz)});
-		h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){console.log(ez)});
+    effectController = {
+        newGridX: gridX,
+        newGridY: gridY,
+        newGridZ: gridZ,
+        newGround: ground,
+        newAxes: axes,
+        uy: 0.0,
+        uz: 0.0,
+        ez: 0.0,
+        fz: 0.0
+    };
+    var gui = new dat.GUI();
+    var h = gui.addFolder("Grid display");
+    h.add(effectController, "newGridX").name("Show XZ grid");
+    h.add(effectController, "newGridY").name("Show YZ grid");
+    h.add(effectController, "newGridZ").name("Show XY grid");
+    h.add(effectController, "newGround").name("Show ground");
+    h.add(effectController, "newAxes").name("Show axes");
+    h = gui.addFolder("Arm angles");
+
+    h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    h.add(effectController, "fz", -120.0, 120.0, 0.025).name("Forearm z").onChange(function(fz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+
 }
+
 try {
 		init();
 		fillScene();
