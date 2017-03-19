@@ -14,12 +14,12 @@
 <script src="lib/tween.min.js"></script>
 <script src="lib/sprintf.js"></script>
 
-
+<div id="controls"> </div>
 <div id="container"> </div>
-<form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
 
+<form id="jsonFile" name="jsonFile" enctype="multipart/foAjazz AK33rm-data" method="post">
   <fieldset>
-    <h2>Json File</h2>
+    <h2>Import File</h2>
      <input type='file' id='fileinput'>
      <input type='button' id='btnLoad' value='Load' onclick='loadFile(createNewArm);'>
   </fieldset>
@@ -69,6 +69,7 @@ var gridZ = false;
 var axes = true;
 var ground = true;
 var arm, forearm, body, effector;
+var gui;
 
 function createNewArm(armConfig){
   // console.log(scene);
@@ -136,7 +137,7 @@ function createNewArm(armConfig){
 }
 
   for (var i = armConfig['arm'].length-1; i != -1; --i) {
-    console.log(i);
+    //console.log(i);
     if(i != 0){
       var armObject = armConfig['arm'][i]['object'];
       armObject.position.y = armConfig['arm'][i-1]['length'];
@@ -145,10 +146,11 @@ function createNewArm(armConfig){
     else{
       arm.add(armConfig['arm'][i]['object']);
     }
-        console.log(armObject);
+        //console.log(armObject);
   }
   scene.add(arm);
-  console.log(armConfig['arm']);
+  remakeGUI(armConfig['arm']);
+  //console.log(armConfig['arm']);
 		//  forearm = new THREE.Object3D();
 		//  var faLength = 100;
 		// createRobotExtender(forearm, faLength, robotForearmMaterial);
@@ -369,17 +371,14 @@ function render() {
 				drawHelpers();
 		}
 
-		// rotateAngle(arm, y, effectController.uy);
-		// rotateAngle(arm, z, effectController.uz* Math.PI / 180);
-		// rotateAngle(effector, z, effectController.ez* Math.PI / 180);
-		// rotateAngle(forearm, z, effectController.fz* Math.PI / 180);
-		arm.rotation.y = effectController.uy * Math.PI / 180;
-		// if(arm.rotation.y != effectController.uy){
-		// 		console.log(arm.rotation.y);
-		// }
-		arm.rotation.z = effectController.uz * Math.PI / 180;
-		effector.rotation.z = effectController.ez * Math.PI / 180;
-		forearm.rotation.z = effectController.fz * Math.PI / 180;
+
+		// arm.rotation.y = effectController.uy * Math.PI / 180;
+		// // if(arm.rotation.y != effectController.uy){
+		// // 		console.log(arm.rotation.y);
+		// // }
+		// arm.rotation.z = effectController.uz * Math.PI / 180;
+		// effector.rotation.z = effectController.ez * Math.PI / 180;
+		// forearm.rotation.z = effectController.fz * Math.PI / 180;
     //console.log(new THREE.Vector3().setFromMatricPosition(endEffector));
 		renderer.render(scene, camera);
 }
@@ -401,19 +400,62 @@ function render() {
 //
 //
 // }
+function remakeGUI(armconfig){
+  gui.destroy();
+  effectController = {
+      newGridX: gridX,
+      newGridY: gridY,
+      newGridZ: gridZ,
+      newGround: ground,
+      newAxes: axes
+  };
+
+  gui = new dat.GUI();
+  var h = gui.addFolder("Grid display");
+  h.add(effectController, "newGridX").name("Show XZ grid");
+  h.add(effectController, "newGridY").name("Show YZ grid");
+  h.add(effectController, "newGridZ").name("Show XY grid");
+  h.add(effectController, "newGround").name("Show ground");
+  h.add(effectController, "newAxes").name("Show axes");
+  h = gui.addFolder("Arm angles");
+  armconfig.forEach(function(object){
+      object["angle"] = 0.0;
+    h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"]).onChange(function(angle){moveArm(object, angle)});
+  //  h.add(object, "id").name("").onchange()
+  console.log(object);
+  });
+  //console.log(armconfig);
+
+}
+
+function moveArm(armObject, angle){
+if(object["z"]){
+  //move in z
+}
+elseif(object["y"]){#
+  //move in y
+}
+elseif(object["x"]){
+  //move in x
+}
+  console.log(armObject);
+}
+
 function setupGui() {
     effectController = {
         newGridX: gridX,
         newGridY: gridY,
         newGridZ: gridZ,
         newGround: ground,
-        newAxes: axes,
-        uy: 0.0,
-        uz: 0.0,
-        ez: 0.0,
-        fz: 0.0
+        newAxes: axes
+        // uy: 0.0,
+        // uz: 0.0,
+        // ez: 0.0,
+        // fz: 0.0
     };
-    var gui = new dat.GUI();
+
+
+    gui = new dat.GUI();
     var h = gui.addFolder("Grid display");
     h.add(effectController, "newGridX").name("Show XZ grid");
     h.add(effectController, "newGridY").name("Show YZ grid");
@@ -422,10 +464,11 @@ function setupGui() {
     h.add(effectController, "newAxes").name("Show axes");
     h = gui.addFolder("Arm angles");
 
-    h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    h.add(effectController, "fz", -120.0, 120.0, 0.025).name("Forearm z").onChange(function(fz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+
+    // h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    // h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    // h.add(effectController, "fz", -120.0, 120.0, 0.025).name("Forearm z").onChange(function(fz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
+    // h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
 
 }
 
