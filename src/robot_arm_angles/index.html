@@ -78,6 +78,18 @@ function forwardKinematics(arm){
   var height = 0;
   var extent = 0;
   arm.forEach(function(object){
+    console.log(object);
+    console.log(Math.cos(90 * Math.PI / 180));
+    var h = (object["length"] * (Math.sin(object["angle"] * Math.PI / 180)));
+    console.log(h);
+    height += h;
+    var e = (object["length"] * (Math.cos(object["angle"] * Math.PI / 180)));
+    extent += e;
+
+    console.log("z: ");
+    console.log(height);
+    console.log("extent: ");
+    console.log(e);
 
   })
 
@@ -123,8 +135,20 @@ function createNewArm(armConfig){
 				shininess: 100
 		});
 
-  
 
+    var upper_bound = 400;
+    var lower_bound = 10;
+    for (i=0;i<5;i++ ){
+      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+      var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+      rock.position.y = 5;
+      var z = Math.round(Math.random()*(upper_bound) - lower_bound);
+      var x = Math.round(Math.random()*(upper_bound) - lower_bound);
+      rock.position.z = z;
+      rock.position.x = x;
+      scene.add(rock);
+
+    }
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
 
 		base.position.y =5;
@@ -147,6 +171,11 @@ function createNewArm(armConfig){
     }
     else if(armConfig['arm'][x]['type'] == 'extender'){
       createRobotExtender(tempArm, length, robotForearmMaterial);
+      armConfig['arm'][x]['object'] = tempArm;
+
+    }
+    else if(armConfig['arm'][x]['type'] == 'effector'){
+      createEndEffector(tempArm,  robotUpperArmMaterial)
       armConfig['arm'][x]['object'] = tempArm;
 
     }
@@ -202,6 +231,17 @@ function fillScene() {
 				specular: 0x279933,
 				shininess: 100
 		});
+    var upper_bound = 400;
+    var lower_bound = 10;
+    for (i=0;i<5;i++ ){
+      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+      var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+      rock.position.y = 5;
+      rock.position.z = Math.round(Math.random()*(upper_bound) - lower_bound);
+      rock.position.x = Math.round(Math.random()*(upper_bound) - lower_bound);
+      scene.add(rock);
+
+    }
 
 
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
@@ -276,6 +316,9 @@ function createEndEffector(part, material){
 		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(15,15,10,32),material);
 		cylinder.position.y = 0;
 		part.add(cylinder);
+    var finger = new THREE.Mesh(new THREE.CubeGeometry(10,20,10,4),material);
+		finger.position.y = 10;
+		part.add(finger);
 		var cone = new THREE.Mesh(new THREE.ConeGeometry( 15, 30, 32 ),new THREE.MeshPhongMaterial({
 				color: 0x6E23BB,
 				specular: 0x6E23BB,
@@ -407,16 +450,16 @@ function remakeGUI(armconfig){
       }
       if(object["x"]){
         h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "x").onChange(function(angle){
-          moveArm(object, angle,"x")
+          moveArm(object, angle*Math.PI / 4,"x")
         });
       }
   });
   var obj = { Move:function(){  armconfig.forEach(function(object){
-      console.log(object["tween"]);
-      object["tween"].start();
-
-
+      //console.log(object["tween"]);
+        console.log(object);
+        object["tween"].start();
     })
+      forwardKinematics(armconfig);
     }
   };
 
@@ -428,7 +471,7 @@ function moveArm(armObject, angle, axis){
 if(axis == "z"){
   if(!armObject["tween"].status){
   //  armObject["object"].rotation.z = angle * Math.PI / 180;
-    console.log(armObject["tween"]);
+    //console.log(armObject["tween"]);
     armObject["tween"].status = true;
     armObject["tween"] = new TWEEN.Tween( { z : armObject["object"].rotation.z, obj : armObject["object"], tween : armObject["tween"] } )
       .to( { z : angle * Math.PI / 180 }, 2000 )

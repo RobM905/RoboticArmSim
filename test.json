@@ -3,5 +3,6 @@
     { "id":2, "type":"extender", "length":100, "x":false, "y":false, "z":true },
     { "id":3, "type":"extender", "length":100, "x":false, "y":false, "z":true },
     { "id":4, "type":"extender", "length":100, "x":false, "y":false, "z":true },
-    { "id":5, "type":"extender", "length":100, "x":false, "y":false, "z":true }
+    { "id":5, "type":"extender", "length":100, "x":false, "y":false, "z":true },
+    { "id":6, "type":"effector", "length":5, "x":false, "y":true, "z":false }
 ]}
