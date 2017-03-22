@@ -4,27 +4,30 @@
 
 <script src="lib/jquery-1.8.3.min.js"></script>
 <script src="lib/three.min.js"></script>
-<script src="lib/Detector.js"></script>
+<script src="lib/three-old.min.js"></script>
+<!-- <script src="lib/Detector.js"></script> -->
 <script src="lib/Coordinates.js"></script>
 <script src="lib/OrbitControls.js"></script>
-<script src="lib/TrackballControls.js"></script> -->
+<script src="lib/OrbitAndPanControls.js"></script>
+<!-- <script src="lib/TrackballControls.js"></script> -->
  <!-- <script src="lib/uclass_shaders.js"></script> -->
 <script src="lib/stats.min.js"></script>
-<script src="lib/dat.gui.min.js"></script>
+<script src="lib/dat.gui.js"></script>
 <script src="lib/tween.min.js"></script>
-<script src="lib/sprintf.js"></script>
+<!-- <script src="lib/sprintf.js"></script> -->
+<link rel="stylesheet" type="text/css" href="css/index.css">
 
-<div id="controls"> </div>
-<div id="container"> </div>
 
-<form id="jsonFile" name="jsonFile" enctype="multipart/foAjazz AK33rm-data" method="post">
+<div id="controls">
+<form id="jsonFile" name="jsonFile" method="post">
   <fieldset>
     <h2>Import File</h2>
      <input type='file' id='fileinput'>
      <input type='button' id='btnLoad' value='Load' onclick='loadFile(createNewArm);'>
   </fieldset>
 </form>
-
+</div>
+<div id="container"> </div>
 <script>
 
 function loadFile(callback) {
@@ -71,6 +74,19 @@ var ground = true;
 var arm, forearm, body, effector;
 var gui;
 
+function forwardKinematics(arm){
+  var height = 0;
+  var extent = 0;
+  arm.forEach(function(object){
+
+  })
+
+}
+
+
+
+
+
 function createNewArm(armConfig){
   // console.log(scene);
   while (scene.children.length)
@@ -107,30 +123,32 @@ function createNewArm(armConfig){
 				shininess: 100
 		});
 
+  
 
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
-		//base.rotation.x = 90 * Math.PI / 180;
+
 		base.position.y =5;
 		scene.add(base);
     drawHelpers();
-  //  console.log(armConfig);
+
     arm = new THREE.Object3D();
     for (x in armConfig['arm']) {
 
-    //console.log(armConfig['arm'][x]);
+      armConfig['arm'][x]["tween"] = {tween:{},status:false};
+
+
     var tempArm = new THREE.Object3D();
-    //console.log(tempArm);
+
     var length = armConfig['arm'][x]['length'];
     if(armConfig['arm'][x]['type'] == 'crane'){
       createRobotCrane(tempArm, length, robotUpperArmMaterial);
       armConfig['arm'][x]['object'] = tempArm;
-      //arm.add(tempArm);
+
     }
     else if(armConfig['arm'][x]['type'] == 'extender'){
       createRobotExtender(tempArm, length, robotForearmMaterial);
       armConfig['arm'][x]['object'] = tempArm;
-    //  tempArm.position.y = armConfig['arm'][x-1]['length'];
-      //arm.add(tempArm);
+
     }
 
 
@@ -150,32 +168,12 @@ function createNewArm(armConfig){
   }
   scene.add(arm);
   remakeGUI(armConfig['arm']);
-  //console.log(armConfig['arm']);
-		//  forearm = new THREE.Object3D();
-		//  var faLength = 100;
-		// createRobotExtender(forearm, faLength, robotForearmMaterial);
-		// var uaLength = 100;
-		// var eLength = 50;
-		// effector = new THREE.Object3D();
-		// createRobotExtender(effector, eLength, robotForearmMaterial);
-		// arm = new THREE.Object3D();
-		// createRobotCrane(arm, uaLength, robotUpperArmMaterial);
-		// endEffector = new THREE.Object3D();
-		// createEndEffector(endEffector, robotUpperArmMaterial);
-		// forearm.position.y = uaLength;
-		// effector.position.y = faLength;
-		// endEffector.position.y = eLength;
-		// effector.add(endEffector);
-		// forearm.add(effector);
-		// arm.add(forearm);
-		// arm.position.y = arm.position.y + 10;
-		// scene.add(arm);
+
 
 
   }
 function fillScene() {
 		scene = new THREE.Scene();
-		//scene.fog = new THREE.Fog(0x808080,2000,4000);
 		var ambientLight = new THREE.AmbientLight(0x222222);
 		var light = new THREE.DirectionalLight(0xFFFFFF,1.0);
 		light.position.set(200, 400, 500);
@@ -207,7 +205,7 @@ function fillScene() {
 
 
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
-		//base.rotation.x = 90 * Math.PI / 180;
+
 		base.position.y =5;
 		scene.add(base);
 		forearm = new THREE.Object3D();
@@ -233,8 +231,6 @@ function fillScene() {
 
 }
 function createRobotExtender(part, length, material) {
-		// var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(22,22,6,32),material);
-		// part.add(cylinder);
 		var i;
 		for (i = 0; i < 4; i++) {
 				var box = new THREE.Mesh(new THREE.CubeGeometry(4,length,4),material);
@@ -292,8 +288,9 @@ function init() {
 
 
 		container = document.getElementById( 'container' );
-		var canvasWidth = 846;
-		var canvasHeight = 494;
+
+		var canvasWidth = $(container).width();
+		var canvasHeight = $(container).height();
 		var canvasRatio = canvasWidth / canvasHeight;
 		renderer = new THREE.WebGLRenderer({
 				antialias: true,
@@ -305,11 +302,12 @@ function init() {
 		renderer.setClearColor(0x000000, 0 );
 		camera = new THREE.PerspectiveCamera(38,canvasRatio,1,10000);
 		camera.position.set(-510, 240, 100);
-		cameraControls = new THREE.OrbitControls(camera,renderer.domElement);
+		 //cameraControls = new THREE.OrbitControls(camera,renderer.domElement);
+    cameraControls = new THREE.OrbitAndPanControls(camera,renderer.domElement);
 		cameraControls.target.set(0, 120, 0);
 		camera.position.set(-102, 177, 20);
 		cameraControls.target.set(-13, 60, 2);
-		//var tween = new TWEEN.Tween(rotation).to(10* Math.PI / 180 , 2000);
+
 		fillScene();
 }
 function addToDOM() {
@@ -319,6 +317,7 @@ function addToDOM() {
 				container.removeChild(canvas[0]);
 		}
 		container.appendChild(renderer.domElement);
+    console.log(renderer.domElement);
 }
 function drawHelpers() {
 		if (ground) {
@@ -356,6 +355,7 @@ function drawHelpers() {
 }
 function animate() {
 		window.requestAnimationFrame(animate);
+    TWEEN.update();
 		render();
 }
 function render() {
@@ -367,39 +367,12 @@ function render() {
 				gridZ = effectController.newGridZ;
 				ground = effectController.newGround;
 				axes = effectController.newAxes;
-				fillScene();
+				//fillScene();
 				drawHelpers();
 		}
-
-
-		// arm.rotation.y = effectController.uy * Math.PI / 180;
-		// // if(arm.rotation.y != effectController.uy){
-		// // 		console.log(arm.rotation.y);
-		// // }
-		// arm.rotation.z = effectController.uz * Math.PI / 180;
-		// effector.rotation.z = effectController.ez * Math.PI / 180;
-		// forearm.rotation.z = effectController.fz * Math.PI / 180;
-    //console.log(new THREE.Vector3().setFromMatricPosition(endEffector));
 		renderer.render(scene, camera);
 }
 
-// function rotateAngle(part, axis, destAngle){
-// 	var destAngleDeg = destAngle* Math.PI / 180;
-//
-// 	//console.log(destAngle);
-// 	// console.log(arm.rotation.y);
-// 	// console.log(destAngle);
-// 	if(arm.rotation.y != destAngleDeg){
-// 		if(arm.rotation.y < destAngleDeg){
-// 			arm.rotation.y = arm.rotation.y + 0.001;
-// 		}
-// 		else if (arm.rotation.y > destAngleDeg) {
-// 			arm.rotation.y = arm.rotation.y - 0.001;
-// 		}
-// 	}
-//
-//
-// }
 function remakeGUI(armconfig){
   gui.destroy();
   effectController = {
@@ -409,6 +382,7 @@ function remakeGUI(armconfig){
       newGround: ground,
       newAxes: axes
   };
+
 
   gui = new dat.GUI();
   var h = gui.addFolder("Grid display");
@@ -420,23 +394,95 @@ function remakeGUI(armconfig){
   h = gui.addFolder("Arm angles");
   armconfig.forEach(function(object){
       object["angle"] = 0.0;
-    h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"]).onChange(function(angle){moveArm(object, angle)});
-  //  h.add(object, "id").name("").onchange()
-  console.log(object);
+
+      if(object["z"]){
+          h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "z").onChange(function(angle){
+            moveArm(object, angle, "z")
+          });
+      }
+      if(object["y"]){
+          h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "y").onChange(function(angle){
+            moveArm(object, angle,"y")
+          });
+      }
+      if(object["x"]){
+        h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "x").onChange(function(angle){
+          moveArm(object, angle,"x")
+        });
+      }
   });
-  //console.log(armconfig);
+  var obj = { Move:function(){  armconfig.forEach(function(object){
+      console.log(object["tween"]);
+      object["tween"].start();
+
+
+    })
+    }
+  };
+
+  gui.add(obj,'Move');
 
 }
 
-function moveArm(armObject, angle){
-if(object["z"]){
-  //move in z
+function moveArm(armObject, angle, axis){
+if(axis == "z"){
+  if(!armObject["tween"].status){
+  //  armObject["object"].rotation.z = angle * Math.PI / 180;
+    console.log(armObject["tween"]);
+    armObject["tween"].status = true;
+    armObject["tween"] = new TWEEN.Tween( { z : armObject["object"].rotation.z, obj : armObject["object"], tween : armObject["tween"] } )
+      .to( { z : angle * Math.PI / 180 }, 2000 )
+      .onUpdate( function () {
+        this.obj.rotation.z = this.z;
+      } )
+      .easing( TWEEN.Easing.Exponential.InOut )
+      .onComplete( function () {
+        this.tween.status = false;
+      });
+      //.start();
+  }
+
 }
-elseif(object["y"]){#
-  //move in y
+else if(axis == "y"){
+  if(!armObject["tween"].status){
+  //  armObject["object"].rotation.z = angle * Math.PI / 180;
+    console.log(armObject["tween"]);
+    armObject["tween"].status = true;
+    armObject["tween"] = new TWEEN.Tween( { y : armObject["object"].rotation.y, obj : armObject["object"], tween : armObject["tween"] } )
+      .to( { y : angle * Math.PI / 180 }, 2000 )
+      .onUpdate( function () {
+        this.obj.rotation.y = this.y;
+      } )
+      .easing( TWEEN.Easing.Exponential.InOut )
+      .onComplete( function () {
+        this.tween.status = false;
+      });
+      //.start();
+  // armObject["object"].rotation.y = angle * Math.PI / 180;
+  // console.log("move in y");
+  }
 }
-elseif(object["x"]){
-  //move in x
+else if(axis == "x"){
+  if(!armObject["tween"].status){
+  //  armObject["object"].rotation.z = angle * Math.PI / 180;
+    console.log(armObject["tween"]);
+    armObject["tween"].status = true;
+    armObject["tween"] = new TWEEN.Tween( { x : armObject["object"].rotation.x, obj : armObject["object"], tween : armObject["tween"] } )
+      .to( { x : angle * Math.PI / 180 }, 2000 )
+      .onUpdate( function () {
+        this.obj.rotation.x = this.x;
+      } )
+      .easing( TWEEN.Easing.Exponential.InOut )
+      .onComplete( function () {
+        this.tween.status = false;
+      });
+      //.start();
+  // armObject["object"].rotation.y = angle * Math.PI / 180;
+  // console.log("move in y");
+  }
+
+  // armObject["object"].rotation.x = angle * Math.PI / 180;
+  // console.log("move in x");
 }
   console.log(armObject);
 }
@@ -448,13 +494,9 @@ function setupGui() {
         newGridZ: gridZ,
         newGround: ground,
         newAxes: axes
-        // uy: 0.0,
-        // uz: 0.0,
-        // ez: 0.0,
-        // fz: 0.0
+
     };
-
-
+    var obj = { test:function(){ console.log("clicked") }};
     gui = new dat.GUI();
     var h = gui.addFolder("Grid display");
     h.add(effectController, "newGridX").name("Show XZ grid");
@@ -463,13 +505,7 @@ function setupGui() {
     h.add(effectController, "newGround").name("Show ground");
     h.add(effectController, "newAxes").name("Show axes");
     h = gui.addFolder("Arm angles");
-
-
-    // h.add(effectController, "uy", -180.0, 180.0, 0.025).name("Upper arm y").onChange(function(uy){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    // h.add(effectController, "uz", -45.0, 45.0, 0.025).name("Upper arm z").onChange(function(uz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    // h.add(effectController, "fz", -120.0, 120.0, 0.025).name("Forearm z").onChange(function(fz){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-    // h.add(effectController, "ez", -120.0, 120.0, 0.025).name("Effector z").onChange(function(ez){var vector = new THREE.Vector3(); vector.setFromMatrixPosition(endEffector.matrixWorld); console.log(vector);});
-
+      gui.add(obj,'test');
 }
 
 try {
@@ -489,7 +525,7 @@ try {
 		</script>
 </head>
 <body>
->
+
 
 </body>
 </html>
