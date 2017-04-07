@@ -9,6 +9,7 @@
 <script src="lib/Coordinates.js"></script>
 <script src="lib/OrbitControls.js"></script>
 <script src="lib/OrbitAndPanControls.js"></script>
+<script src="lib/kinematics.js"></script>
 <!-- <script src="lib/TrackballControls.js"></script> -->
  <!-- <script src="lib/uclass_shaders.js"></script> -->
 <script src="lib/stats.min.js"></script>
@@ -73,27 +74,90 @@ var axes = true;
 var ground = true;
 var arm, forearm, body, effector;
 var gui;
+//const Kinematics = require('kinematics').default;
 
 function forwardKinematics(arm){
-  var height = 0;
-  var extent = 0;
-  arm.forEach(function(object){
-    console.log(object);
-    console.log(Math.cos(90 * Math.PI / 180));
-    var h = (object["length"] * (Math.sin(object["angle"] * Math.PI / 180)));
-    console.log(h);
-    height += h;
-    var e = (object["length"] * (Math.cos(object["angle"] * Math.PI / 180)));
-    extent += e;
+  var jointHeights = [];
+  var jointAngles = [];
+  var e = 0;
+  var h = 0;
+  var armR = 0;
+  var angleSum = 0;
+  var x = 0;
+  var y = 0;
 
-    console.log("z: ");
-    console.log(height);
-    console.log("extent: ");
-    console.log(e);
+  arm.forEach(function(object){
+  //  console.log(object);
+    if(object['type']!='effector'){
+      jointHeights.push(object['length']);
+      jointAngles.push(object['angle']* Math.PI / 180);
+      console.log(object['object'].rotation);
+      }
+      else{
+        scene.updateMatrixWorld();
+        var worldPos  = new THREE.Vector3().getPositionFromMatrix(object['object'].matrixWorld);
+
+        console.log('effect location from three.js');
+        console.log(worldPos);
+      }
 
   })
+  console.log('jointHeights\n');
+  console.log(jointHeights);
+  console.log('jointAngles\n');
+  console.log(jointAngles);
+    h = jointHeights[0];
+    armR = jointAngles[0];
 
-}
+  for (i=1; i<4; i++){
+      angleSum += jointAngles[i];
+      var tempHeight = jointHeights[i] * Math.cos(  angleSum ).toFixed(15);
+      console.log(tempHeight);
+      var tempExtent = jointHeights[i] * Math.sin(  angleSum );
+      console.log(tempExtent);
+      h += tempHeight;
+      e += tempExtent;
+    }
+    x = e * Math.sin(jointAngles[1]);
+    y = e * Math.cos(jointAngles[1]).toFixed(15);
+    console.log(h);
+    console.log(e);
+    console.log('effect location from kinematics');
+    console.log(x,y,h);
+
+  }
+      // if(object['type']=='crane'){
+      //   console.log(object['type']);
+      //   console.log(object['angle']);
+      //   console.log(object['length']);
+      // }
+      // else if(object['type']=='extender')
+      //     console.log(object['type']);
+      //     console.log(object['angle']);
+      //     console.log(object['length']);
+      //
+
+      // scene.updateMatrixWorld();
+      // var vector = new THREE.Vector3();
+      // vector.setFromMatrixPosition(object['object'].matrixWorld );
+    //  console.log(object['object']['position']);
+      //console.log(object['object']['rotation']);
+
+    //console.log(Math.cos(90 * Math.PI / 180));
+    //var h = (object["length"] * (Math.sin(object["angle"] * Math.PI / 180)));
+    //console.log(h);
+    //height += h;
+    //var e = (object["length"] * (Math.cos(object["angle"] * Math.PI / 180)));
+    //extent += e;
+
+    //console.log("z: ");
+    //console.log(height);
+    //console.log("extent: ");
+    //console.log(e);
+
+
+
+
 
 
 
@@ -439,17 +503,17 @@ function remakeGUI(armconfig){
       object["angle"] = 0.0;
 
       if(object["z"]){
-          h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "z").onChange(function(angle){
+          h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "z").onChange(function(angle){
             moveArm(object, angle, "z")
           });
       }
       if(object["y"]){
-          h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "y").onChange(function(angle){
+          h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "y").onChange(function(angle){
             moveArm(object, angle,"y")
           });
       }
       if(object["x"]){
-        h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "x").onChange(function(angle){
+        h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "x").onChange(function(angle){
           moveArm(object, angle*Math.PI / 4,"x")
         });
       }
@@ -460,6 +524,7 @@ function remakeGUI(armconfig){
         object["tween"].start();
     })
       forwardKinematics(armconfig);
+
     }
   };
 

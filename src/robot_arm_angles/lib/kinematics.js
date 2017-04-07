@@ -387,4 +387,3 @@ export default class Kinematics {
     return Math.sqrt((a ** 2) + (b ** 2))
   }
 }
-
