@@ -4,14 +4,17 @@
 
 <script src="lib/jquery-1.8.3.min.js"></script>
 <script src="lib/three.min.js"></script>
-<script src="lib/three-old.min.js"></script>
+<!-- <script src="lib/three-old.min.js"></script> -->
 <!-- <script src="lib/Detector.js"></script> -->
 <script src="lib/Coordinates.js"></script>
 <script src="lib/OrbitControls.js"></script>
-<script src="lib/OrbitAndPanControls.js"></script>
-<script src="lib/kinematics.js"></script>
+<!-- <script src="lib/OrbitAndPanControls.js"></script> -->
+<!-- <script src="lib/kinematics.js"></script> -->
 <!-- <script src="lib/TrackballControls.js"></script> -->
  <!-- <script src="lib/uclass_shaders.js"></script> -->
+ <script src="lib/DragControls.js"></script>
+
+
 <script src="lib/stats.min.js"></script>
 <script src="lib/dat.gui.js"></script>
 <script src="lib/tween.min.js"></script>
@@ -19,6 +22,8 @@
 <link rel="stylesheet" type="text/css" href="css/index.css">
 
 
+
+<div id="container"> </div>
 <div id="controls">
 <form id="jsonFile" name="jsonFile" method="post">
   <fieldset>
@@ -28,7 +33,6 @@
   </fieldset>
 </form>
 </div>
-<div id="container"> </div>
 <script>
 
 function loadFile(callback) {
@@ -74,6 +78,10 @@ var axes = true;
 var ground = true;
 var arm, forearm, body, effector;
 var gui;
+var dragControls;
+var DragObject = [];
+var endVector;
+
 //const Kinematics = require('kinematics').default;
 
 function forwardKinematics(arm){
@@ -91,11 +99,22 @@ function forwardKinematics(arm){
     if(object['type']!='effector'){
       jointHeights.push(object['length']);
       jointAngles.push(object['angle']* Math.PI / 180);
-      console.log(object['object'].rotation);
+      //console.log(object['object'].rotation);
       }
       else{
         scene.updateMatrixWorld();
-        var worldPos  = new THREE.Vector3().getPositionFromMatrix(object['object'].matrixWorld);
+        var worldPos  = new THREE.Vector3().setFromMatrixPosition(object['object'].matrixWorld);
+        var orbMaterial = new THREE.MeshPhongMaterial({
+            color: 0x6E23BB,
+            specular: 0x6E23BB,
+            shininess: 20
+        });
+        var orbGeometry = new THREE.SphereGeometry(20, 6, 4);
+        var orb =  new THREE.Mesh(orbGeometry, orbMaterial);
+        scene.add(orb);
+        //orb.position.set(worldPos);
+
+        //object['object'].position = worldPos;
 
         console.log('effect location from three.js');
         console.log(worldPos);
@@ -200,19 +219,31 @@ function createNewArm(armConfig){
 		});
 
 
+
     var upper_bound = 400;
     var lower_bound = 10;
     for (i=0;i<5;i++ ){
-      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
-      var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
-      rock.position.y = 5;
-      var z = Math.round(Math.random()*(upper_bound) - lower_bound);
-      var x = Math.round(Math.random()*(upper_bound) - lower_bound);
-      rock.position.z = z;
-      rock.position.x = x;
-      scene.add(rock);
+    //   var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+    //   var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+    //   rock.position.y = 5;
+    //   var z = Math.round(Math.random()*(upper_bound) - lower_bound);
+    //   var x = Math.round(Math.random()*(upper_bound) - lower_bound);
+    //   rock.position.z = z;
+    //   rock.position.x = x;
+    //   scene.add(rock);
+    // //  DragObject.push(rock);
 
     }
+    var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+    var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+    rock.position.z = 100;
+    rock.position.x = 110;
+    scene.add(rock);
+    DragObject.push(rock);
+
+
+
+
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
 
 		base.position.y =5;
@@ -231,17 +262,22 @@ function createNewArm(armConfig){
     if(armConfig['arm'][x]['type'] == 'crane'){
       createRobotCrane(tempArm, length, robotUpperArmMaterial);
       armConfig['arm'][x]['object'] = tempArm;
-
+      DragObject.push(tempArm);
     }
     else if(armConfig['arm'][x]['type'] == 'extender'){
       createRobotExtender(tempArm, length, robotForearmMaterial);
       armConfig['arm'][x]['object'] = tempArm;
-
+      DragObject.push(tempArm);
     }
     else if(armConfig['arm'][x]['type'] == 'effector'){
       createEndEffector(tempArm,  robotUpperArmMaterial)
+      scene.updateMatrixWorld();
+      endVector = new THREE.Vector3().setFromMatrixPosition(tempArm.matrixWorld);
+      tempArm.position = endVector;
       armConfig['arm'][x]['object'] = tempArm;
+      DragObject.push(tempArm);
 
+      console.log(tempArm);
     }
 
 
@@ -259,12 +295,58 @@ function createNewArm(armConfig){
     }
         //console.log(armObject);
   }
+  arm.rotation.y = arm.rotation.y + 1.5708;
   scene.add(arm);
+  var objects =[];
+  objects.push(arm);
+  console.log(objects);
+  dragControls = new THREE.DragControls( DragObject, camera, renderer.domElement );
+console.log(dragControls);
+	dragControls.addEventListener( 'dragstart', function ( event ) { cameraControls.enabled = false; inverseKinematics(DragObject[0].position.x, DragObject[0].position.z, DragObject[0].position.y, 0.523, armConfig['arm']) } );
+	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; } );
   remakeGUI(armConfig['arm']);
-
-
+  inverseKinematics(110, 100, 10, 0.523,armConfig['arm']);
 
   }
+
+  function inverseKinematics(destx, desty, destz, pitch, arm){
+    console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
+      var l1 = 80;
+      var l2 = 80;
+      var l3 = 80;
+      var h = 100;
+      var theta1 = Math.atan(destx / desty);
+      var extent = Math.sqrt(destx * destx + desty * desty);
+      extent = Math.min(extent, l1 + l2 + l3);
+      console.log(extent);
+      var ew = extent - (l3 * Math.cos(pitch));
+      console.log(ew);
+
+      var z0 = (destz - l3 * Math.sin(pitch) - h);
+      //console.log(z0);
+      var e0 = Math.sqrt(z0 * z0 + ew * ew);
+      console.log(e0);
+      var B = Math.atan(z0 / ew);
+      var A = Math.acos(-(l2 * l2 - e0 * e0 - l1 * l1) / (2 *e0 * l1));
+      var C = Math.acos(-(e0 * e0 - l2 * l2 - l2 * l2) / (2 * l1 * l2));
+      var theta2 = A + B;
+      var theta3 = theta2 + C - 3.14; // elbow up
+      console.log(-(l2 * l2 - e0 * e0 - l1 * l1) / (2 *e0 * l1));
+      console.log(A);
+      console.log(C);
+      console.log(theta2);
+      console.log(theta3);
+
+      console.log(arm);
+      arm[0]['object'].rotation.y = theta1 + 3.14;
+      arm[1]['object'].rotation.z = theta2  ;
+      arm[2]['object'].rotation.z = theta3  ;
+      arm[3]['object'].rotation.z = pitch  ;
+      //moveArm(arm[0]['object'],theta1 * (180 / Math.PI), 'x');
+      console.log(theta1);
+    }
+
+
 function fillScene() {
 		scene = new THREE.Scene();
 		var ambientLight = new THREE.AmbientLight(0x222222);
@@ -275,65 +357,69 @@ function fillScene() {
 		scene.add(ambientLight);
 		scene.add(light);
 		scene.add(light2);
-		var robotBaseMaterial = new THREE.MeshPhongMaterial({
-				color: 0x6E23BB,
-				specular: 0x6E23BB,
-				shininess: 20
-		});
-		var robotForearmMaterial = new THREE.MeshPhongMaterial({
-				color: 0xF4C154,
-				specular: 0xF4C154,
-				shininess: 100
-		});
-		var robotUpperArmMaterial = new THREE.MeshPhongMaterial({
-				color: 0x95E4FB,
-				specular: 0x95E4FB,
-				shininess: 100
-		});
-		var robotBodyMaterial = new THREE.MeshPhongMaterial({
-				color: 0x279933,
-				specular: 0x279933,
-				shininess: 100
-		});
-    var upper_bound = 400;
-    var lower_bound = 10;
-    for (i=0;i<5;i++ ){
-      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
-      var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
-      rock.position.y = 5;
-      rock.position.z = Math.round(Math.random()*(upper_bound) - lower_bound);
-      rock.position.x = Math.round(Math.random()*(upper_bound) - lower_bound);
-      scene.add(rock);
+		// var robotBaseMaterial = new THREE.MeshPhongMaterial({
+		// 		color: 0x6E23BB,
+		// 		specular: 0x6E23BB,
+		// 		shininess: 20
+		// });
+		// var robotForearmMaterial = new THREE.MeshPhongMaterial({
+		// 		color: 0xF4C154,
+		// 		specular: 0xF4C154,
+		// 		shininess: 100
+		// });
+		// var robotUpperArmMaterial = new THREE.MeshPhongMaterial({
+		// 		color: 0x95E4FB,
+		// 		specular: 0x95E4FB,
+		// 		shininess: 100
+		// });
+		// var robotBodyMaterial = new THREE.MeshPhongMaterial({
+		// 		color: 0x279933,
+		// 		specular: 0x279933,
+		// 		shininess: 100
+		// });
+    // var upper_bound = 400;
+    // var lower_bound = 10;
+    // for (i=0;i<5;i++ ){
+    //   var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+    //   var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+    //   rock.position.y = 5;
+    //   rock.position.z = Math.round(Math.random()*(upper_bound) - lower_bound);
+    //   rock.position.x = Math.round(Math.random()*(upper_bound) - lower_bound);
+    //   scene.add(rock);
 
-    }
-
-
-		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
-
-		base.position.y =5;
-		scene.add(base);
-		forearm = new THREE.Object3D();
-		var faLength = 100;
-		createRobotExtender(forearm, faLength, robotForearmMaterial);
-		var uaLength = 100;
-		var eLength = 50;
-		effector = new THREE.Object3D();
-		createRobotExtender(effector, eLength, robotForearmMaterial);
-		arm = new THREE.Object3D();
-
-		createRobotCrane(arm, uaLength, robotUpperArmMaterial);
-		endEffector = new THREE.Object3D();
-		createEndEffector(endEffector, robotUpperArmMaterial);
-		forearm.position.y = uaLength;
-		effector.position.y = faLength;
-		endEffector.position.y = eLength;
-		effector.add(endEffector);
-		forearm.add(effector);
-		arm.add(forearm);
-		//arm.position.y = arm.position.y + 10;
-		scene.add(arm);
+    // }
+    //
+    //
+		// var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
+    //
+		// base.position.y =5;
+		// scene.add(base);
+		// forearm = new THREE.Object3D();
+		// var faLength = 100;
+		// createRobotExtender(forearm, faLength, robotForearmMaterial);
+		// var uaLength = 100;
+		// var eLength = 50;
+		// effector = new THREE.Object3D();
+		// createRobotExtender(effector, eLength, robotForearmMaterial);
+		// arm = new THREE.Object3D();
+    //
+		// createRobotCrane(arm, uaLength, robotUpperArmMaterial);
+		// endEffector = new THREE.Object3D();
+		// createEndEffector(endEffector, robotUpperArmMaterial);
+		// forearm.position.y = uaLength;
+		// effector.position.y = faLength;
+		// endEffector.position.y = eLength;
+		// effector.add(endEffector);
+		// forearm.add(effector);
+		// arm.add(forearm);
+		// //arm.position.y = arm.position.y + 10;
+		// scene.add(arm);
 
 }
+
+
+
+
 function createRobotExtender(part, length, material) {
 		var i;
 		for (i = 0; i < 4; i++) {
@@ -389,10 +475,9 @@ function createEndEffector(part, material){
 				shininess: 20
 		}));
 		cone.position.y = 15;
-		part.add(cone);
+		//part.add(cone);
 }
 function init() {
-
 
 		container = document.getElementById( 'container' );
 
@@ -405,15 +490,15 @@ function init() {
 		});
 		renderer.gammaInput = true;
 		renderer.gammaOutput = true;
-		renderer.setSize(canvasWidth, canvasHeight);
+		renderer.setSize(window.innerWidth , window.innerHeight);
 		renderer.setClearColor(0x000000, 0 );
-		camera = new THREE.PerspectiveCamera(38,canvasRatio,1,10000);
-		camera.position.set(-510, 240, 100);
-		 //cameraControls = new THREE.OrbitControls(camera,renderer.domElement);
-    cameraControls = new THREE.OrbitAndPanControls(camera,renderer.domElement);
+		camera = new THREE.PerspectiveCamera(38,window.innerWidth / window.innerHeight,1,10000);
+		camera.position.set(-510, 240, 200);
+		 cameraControls = new THREE.OrbitControls(camera,renderer.domElement,container);
+    //cameraControls = new THREE.OrbitAndPanControls(camera,renderer.domElement);
 		cameraControls.target.set(0, 120, 0);
-		camera.position.set(-102, 177, 20);
-		cameraControls.target.set(-13, 60, 2);
+		camera.position.set(0, 1000,1000);
+		//cameraControls.target.set(-13, 60, 2);
 
 		fillScene();
 }
@@ -462,6 +547,11 @@ function drawHelpers() {
 }
 function animate() {
 		window.requestAnimationFrame(animate);
+
+    // geometry2.vertices.push( camera.position);
+    // geometry2.vertices.push(vector.sub( camera.position ).normalize());
+    // var line = new THREE.Line(geometry2, material2);
+    // scene.add(line);
     TWEEN.update();
 		render();
 }
@@ -533,6 +623,7 @@ function remakeGUI(armconfig){
 }
 
 function moveArm(armObject, angle, axis){
+  console.log(dragControls);
 if(axis == "z"){
   if(!armObject["tween"].status){
   //  armObject["object"].rotation.z = angle * Math.PI / 180;
