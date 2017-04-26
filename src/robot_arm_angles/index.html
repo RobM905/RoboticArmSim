@@ -311,8 +311,8 @@ console.log(dragControls);
 
   function inverseKinematics(destx, desty, destz, pitch, arm){
     console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
-      var c = 80;
-      var a = 80;
+      var b = 80;
+      var c = 80 + 30;
       //var l3 = 80;
       //var h = 100;
       var theta1 = Math.atan2(desty, destx);
@@ -321,9 +321,11 @@ console.log(dragControls);
       }
       theta1 = theta1 - (theta1 * 2) + 1.57;
 
-      console.log(theta1);
-      var b = Math.sqrt(destx * destx + desty * desty);
-      var c = Math.min(b, a + c);
+
+      var extent = Math.sqrt(destx * destx + desty * desty);
+      extent = Math.min(extent, b + c);
+      var a = Math.sqrt(extent * extent + destz * destz);
+
 
 
 
@@ -353,14 +355,25 @@ console.log(dragControls);
     //  console.log(e0);zdxfg
 
       //var B = Math.atan2(z0 , ew);
-      var B = Math.acos((b * b - a * a - c * c) / (-2 * a * c)),
-      A = Math.acos((a * a - b * b - c * c) / (-2 * b * c)),
-      D = Math.atan2(c, destz),
-       theta2 = D - A,
-       theta3 = 3.14159 - B;
+      var A = cosineAngle(b,c,a),
+      //A = (A - A * 2) + 1.57,
+      B = cosineAngle(c,a,b),
+      C = cosineAngle(a,b,c),
+      D = Math.atan2(extent, destz),
+      D = Math.min(D, b + c),
+       theta2 = D - C,
+       theta3 = 3.14159 - A;
 
-       console.log(B);
-       console.log(A);
+       console.log("Angle A "+radToDeg(A));
+       console.log("Angle B "+radToDeg(B));
+       console.log("Angle C "+radToDeg(C));
+       console.log("Side a "+a);
+       console.log("Side b "+b);
+       console.log("Side c "+c);
+       console.log("theta1 "+theta1);
+       console.log("theta2 "+theta2);
+       console.log("theta3 "+theta3);
+
       //  console.log(C);
        //theta3 = Math.max(D, 1.57) - Math.min(D, 1.57);
       // var A = Math.acos((l2 * l2 - e0 * e0 - l1 * l1) / (-2 *e0 * l1));
@@ -375,20 +388,46 @@ console.log(dragControls);
 
       //console.log(arm);
     //  moveArm(arm[0], theta1 * (180/Math.PI), 'y');
-      moveArm(arm[0], theta2 * (180/Math.PI), 'z');
-      moveArm(arm[1], (0 - theta3 - 3.14) * (180/Math.PI), 'z');
-      moveArm(arm[2], 0  * (180/Math.PI), 'z');
+      // moveArm(arm[0], theta2 * (180/Math.PI), 'z');
+      // moveArm(arm[1], (0 - theta3 - 3.14) * (180/Math.PI), 'z');
+      // moveArm(arm[2], 0  * (180/Math.PI), 'z');
 
-        arm[0]['object'].rotation.y = theta1 ;
-      //  arm[0]['object'].rotation.z =  theta2;
-      //  arm[1]['object'].rotation.z = 0 - theta3 - 3.14;
+        arm[0]['object'].rotation.y = theta1;
+        arm[0]['object'].rotation.z = theta2;
+        arm[1]['object'].rotation.z = theta3;
 
-       startTweens(arm);
+       //startTweens(arm);
       // arm[1]['object'].rotation.z =  ;
        //arm[2]['object'].rotation.z = (pitch * (Math.PI / 180)) -1.5708;
       //moveArm(arm[0]['object'],theta1 * (180 / Math.PI), 'x');
       //console.log(theta1);
     }
+
+function cosineAngle(a,b,c){
+  var temp = (a * a + b * b - c * c) / (2 * a * b);
+
+  console.log(temp);
+  if (-1 <= temp && temp <= 0.9999999)return Math.acos(temp);
+
+  else if (temp >= 1){
+    console.log("temp is more than 1 returning 0 radians");
+    return 0;
+    //return Math.sqrt((c * c - (a - b) * (a - b)) / (a * b));
+  }
+  else if( temp <= -1){
+    return Math.PI;
+  }
+
+  else return "Solution not found";
+}
+
+function radToDeg(x){
+  return x / Math.PI * 180;
+}
+
+function degToRad(x){
+  return x / 180 * Math.PI;
+}
 
 
 function fillScene() {
