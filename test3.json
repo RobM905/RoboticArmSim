@@ -1,0 +1,5 @@
+{"arm":[
+    { "id":1, "type":"extender", "length":80, "x":false, "y":true, "z":true },
+    { "id":2, "type":"extender", "length":80, "x":false, "y":false, "z":true },
+    { "id":3, "type":"effector", "length":5, "x":false, "y":true, "z":false }
+]}
