@@ -220,28 +220,12 @@ function createNewArm(armConfig){
 
 
 
-    var upper_bound = 400;
-    var lower_bound = 10;
-    for (i=0;i<5;i++ ){
-    //   var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
-    //   var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
-    //   rock.position.y = 5;
-    //   var z = Math.round(Math.random()*(upper_bound) - lower_bound);
-    //   var x = Math.round(Math.random()*(upper_bound) - lower_bound);
-    //   rock.position.z = z;
-    //   rock.position.x = x;
-    //   scene.add(rock);
-    // //  DragObject.push(rock);
-
-    }
     var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
     var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
     rock.position.z = 100;
     rock.position.x = 110;
     scene.add(rock);
     DragObject.push(rock);
-
-
 
 
 		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
@@ -301,7 +285,7 @@ function createNewArm(armConfig){
   objects.push(arm);
   console.log(objects);
   dragControls = new THREE.DragControls( DragObject, camera, renderer.domElement );
-console.log(dragControls);
+  console.log(dragControls);
 	dragControls.addEventListener( 'dragstart', function ( event ) { cameraControls.enabled = false;  } );
 	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; inverseKinematics(DragObject[0].position.x, DragObject[0].position.z, DragObject[0].position.y,50, armConfig['arm'])} );
   remakeGUI(armConfig['arm']);
@@ -309,8 +293,151 @@ console.log(dragControls);
 
   }
 
+  function vectorAngle(p1,p2){
+    return Math.atan2(p1.y - p2.y ,p1.x - p2.x);
+  }
+
+  function movePoints(p1, p2, segLength){
+    var angle = vectorAngle(p1,p2);
+    //console.log("Vector angle: ");
+    //console.log(angle);
+    //console.log("segment length");
+    //console.log(segLength);
+    var newPoint =  new THREE.Vector2(segLength * Math.sin(angle), segLength * Math.cos(angle));
+    newPoint.add(p1);
+    //console.log("new vector");
+    //console.log(newPoint);
+    return newPoint;
+  }
+
+  function calculateJointAngles(pointArray){
+    var angleArray = [];
+    for (var i=0; i<pointArray.length-1; i++){
+      var tempAngle = vectorAngle(pointArray[i],pointArray[i+1]);
+      angleArray.push(tempAngle);
+    }
+    return angleArray;
+  }
+
+  function checkPointLocation(point, goalPoint, margin){
+    //console.log("distance");
+    //console.log(point.distanceTo(goalPoint));
+      if(point.distanceTo(goalPoint) <= margin){
+        return true;
+      }
+        else{ return false; }
+  }
+
+  function fabrik(armArray, goalx, goaly, margin){
+    if(armArray[0]["type"] == "crane"){
+      armArray.splice(0,1);
+    }
+
+    //console.log("FABRIK START");
+    //console.log(armArray);
+    console.log("GoalPoint: ");
+    var goalP = new THREE.Vector2(goalx,goaly);
+    console.log(goalP);
+    //console.log("StartPoint: ");
+    var startPoint = calculateStartPoint(armArray);
+    //console.log(startPoint);
+    //console.log("Point Array");
+    var pointsArray = calcualtePoints(armArray);
+    //console.log(pointsArray);
+    var endEffectorPoint = pointsArray[pointsArray.length-1];
+
+    //while(!checkPointLocation(endEffectorPoint,goalP, margin)){
+      endEffectorPoint = pointsArray[pointsArray.length-1];
+      console.log(endEffectorPoint.distanceTo(goalP));
+      console.log(endEffectorPoint);
+     for(var f =0; f < 10000; f++){
+       //console.log(f);
+      //console.log(checkPointLocation(pointsArray[pointsArray.length-1],goalP, margin));
+      //console.log("test");
+
+      console.log(pointsArray[0]);
+      console.log(pointsArray[1]);
+      console.log(pointsArray[2]);
+      console.log(pointsArray[3]);
+        pointsArray[pointsArray.length-1] = goalP;
+
+        for (var i=pointsArray.length-2; i >= 0; i--){
+          var newPoint = movePoints(pointsArray[i+1],pointsArray[i],armArray[i]["length"]);
+          pointsArray[i] = newPoint;
+        }
+        // console.log("after backwards");
+        // console.log(pointsArray[0]);
+        // console.log(pointsArray[1]);
+        // console.log(pointsArray[2]);
+        // console.log(pointsArray[3]);
+        //console.log(pointsArray);
+        if(!checkPointLocation(pointsArray[0],startPoint, 0)){
+          pointsArray[0] = startPoint;
+          //console.log(pointsArray);
+          //console.log(pointsArray.length);
+
+          for (var j=1;j<pointsArray.length; j++){
+            var newPoint = movePoints(pointsArray[j-1],pointsArray[j],armArray[j-1]["length"]);
+            pointsArray[j] = newPoint;
+          }
+
+          // console.log("after forwards");
+          // console.log(pointsArray[0]);
+          // console.log(pointsArray[1]);
+          // console.log(pointsArray[2]);
+          // console.log(pointsArray[3]);
+          //console.log(pointsArray);
+        }
+    }
+    // console.log("Final Points Array");
+    // console.log(pointsArray);
+    var angleArray = calculateJointAngles(pointsArray);
+    //console.log(angleArray);
+    return angleArray;
+
+  }
+
+  function calculateStartPoint(armArray){
+    //console.log(armArray);
+    var startPoint = new THREE.Vector2();
+  //  console.log(startPoint);
+    if(armArray[0]["type"] == "crane"){
+      startPoint.y = startPoint.y + armArray[0]["length"];
+    }
+
+    return startPoint;
+  }
+
+
+
+  function calcualtePoints(armArray){
+    var pointArray = [];
+    var trackY = 0;
+    var startPoint = calculateStartPoint(armArray);
+    pointArray.push(startPoint);
+    armArray.forEach(function(object){
+      if(object["type"] != "crane"){
+        var segLength = object["length"];
+        trackY += segLength;
+        var tempPoint = new THREE.Vector2(0,trackY);
+        tempPoint.height = segLength;
+        pointArray.push(tempPoint);
+      }
+     })
+     return pointArray;
+   }
+
+
   function inverseKinematics(destx, desty, destz, pitch, arm){
     console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
+
+    // console.log("start point: ")
+    // console.log(calculateStartPoint(arm));
+    // var pointsArray = calcualtePoints(arm);
+    // console.log("Points Array");
+    // console.log(pointsArray);
+    // console.log(80 * Math.sin(0));
+    // console.log(80 * Math.cos(0));
       var b = 80;
       var c = 80 + 30;
       //var l3 = 80;
@@ -326,7 +453,7 @@ console.log(dragControls);
       extent = Math.min(extent, b + c);
       var a = Math.sqrt(extent * extent + destz * destz);
 
-
+      var angleArray = fabrik(arm, extent, destz,0);
 
 
       // var  a = 80,
@@ -382,7 +509,7 @@ console.log(dragControls);
       // var theta3 = theta2 - C + 3.14; // elbow up
       //console.log(-(l2 * l2 - e0 * e0 - l1 * l1) / (2 *e0 * l1));
       //console.log(A);
-      //console.log(C);
+      //console.log(C+);
       //console.log(theta2);
       //console.log(theta3);
 
@@ -393,8 +520,9 @@ console.log(dragControls);
       // moveArm(arm[2], 0  * (180/Math.PI), 'z');
 
         arm[0]['object'].rotation.y = theta1;
-        arm[0]['object'].rotation.z = theta2;
-        arm[1]['object'].rotation.z = theta3;
+        arm[0]['object'].rotation.z = angleArray[0];
+        arm[1]['object'].rotation.z = angleArray[1];
+        arm[2]['object'].rotation.z = angleArray[2];
 
        //startTweens(arm);
       // arm[1]['object'].rotation.z =  ;
