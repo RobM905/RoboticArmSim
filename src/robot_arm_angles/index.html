@@ -2,38 +2,90 @@
 <html lang="en">
 <head>
 
-<script src="lib/jquery-1.8.3.min.js"></script>
+
 <script src="lib/three.min.js"></script>
-<!-- <script src="lib/three-old.min.js"></script> -->
-<!-- <script src="lib/Detector.js"></script> -->
 <script src="lib/Coordinates.js"></script>
 <script src="lib/OrbitControls.js"></script>
-<!-- <script src="lib/OrbitAndPanControls.js"></script> -->
-<!-- <script src="lib/kinematics.js"></script> -->
-<!-- <script src="lib/TrackballControls.js"></script> -->
- <!-- <script src="lib/uclass_shaders.js"></script> -->
+ <script src="js/jquery-3.2.1.min.js"></script>
+ <script src="js/bootstrap.min.js"></script>
  <script src="lib/DragControls.js"></script>
-
-
-<script src="lib/stats.min.js"></script>
 <script src="lib/dat.gui.js"></script>
 <script src="lib/tween.min.js"></script>
-<!-- <script src="lib/sprintf.js"></script> -->
-<link rel="stylesheet" type="text/css" href="css/index.css">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/simple-sidebar.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="wrapper" class="toggled">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <!-- <ul class="sidebar-nav"> -->
+                <div class="text-white" >
+                      <h2>Robotic Arm Simulator<h2>
+                  </div>
+
+
+                      <h3>Import Config File</h3>
+                        <label class="btn btn-primary">
+                          Browse </br>
+                          <input type='file' id='fileinput' style='display:none;' onchange='loadFile(createNewArm);'>
+                     </label>
+
+                     <div>
+                         <h3>Kinematic Type</h3>
+                          <button type='button' id='analyticalButton' class='btn btn-default active' data-active-class="primary"   onclick="toggleKinematics(this,1);">Analytical</button>
+                          <button type='button'  id='iterativeButton' class='btn btn-default' data-active-class="primary"  onclick="toggleKinematics(this, 2);">Interative</button>
+                     </div>
+
+                     <div>
+                         <h3>Motion Type</h3>
+                           <button type='button'  id='SlewButton' class='btn btn-default active' data-active-class="primary"  onclick="toggleMotion(this, 1);">Slew Motion</button>
+                          <button type='button' id='JJMButton' class='btn btn-default' data-active-class="primary"   onclick="toggleMotion(this,2);">JJ Motion</button>
+
+                     </div>
+
+                     <div class='pre-scrollable'>
+                       <table id='outputTable' class="table table-condensed">
+                         <tbody>
+
+                         </tbody>
+                       </table>
+                     </div>
 
 
 
-<div id="container"> </div>
-<div id="controls">
-<form id="jsonFile" name="jsonFile" method="post">
-  <fieldset>
-    <h2>Import File</h2>
-     <input type='file' id='fileinput'>
-     <input type='button' id='btnLoad' value='Load' onclick='loadFile(createNewArm);'>
-  </fieldset>
-</form>
-</div>
+
+            <!-- </ul> -->
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                      <div id="container"> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+
+
+
+
+</body>
 <script>
+
+// $(document).on('change', ':file',funtion(){
+//
+// })
 
 function loadFile(callback) {
 	 var input, file, fr;
@@ -81,8 +133,24 @@ var gui;
 var dragControls;
 var DragObject = [];
 var endVector;
+var kinematicsType = 1;
+var motionType = 1;
 
-//const Kinematics = require('kinematics').default;
+function toggleKinematics(button,type){
+  kinematicsType = type;
+  $('#analyticalButton').removeClass("active");
+  $('#iterativeButton').removeClass("active");
+  $(button).addClass("active");
+
+}
+
+function toggleMotion(button,type){
+  motionType = type;
+  $('#JJMButton').removeClass("active");
+  $('#SlewButton').removeClass("active");
+  $(button).addClass("active");
+
+}
 
 function forwardKinematics(arm){
   var jointHeights = [];
@@ -143,6 +211,8 @@ function forwardKinematics(arm){
     console.log(e);
     console.log('effect location from kinematics');
     console.log(x,y,h);
+
+    $('#outputTable tr:last').after('<tr>End Effector Location: ('+x+', '+y+', '+h+')</tr>');
 
   }
       // if(object['type']=='crane'){
@@ -289,7 +359,7 @@ function createNewArm(armConfig){
 	dragControls.addEventListener( 'dragstart', function ( event ) { cameraControls.enabled = false;  } );
 	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; inverseKinematics(DragObject[0].position.x, DragObject[0].position.z, DragObject[0].position.y,50, armConfig['arm'])} );
   remakeGUI(armConfig['arm']);
-  inverseKinematics(110, 100, 5, 90,armConfig['arm']);
+  //inverseKinematics(110, 100, 5, 90,armConfig['arm']);
 
   }
 
@@ -350,7 +420,7 @@ function createNewArm(armConfig){
       endEffectorPoint = pointsArray[pointsArray.length-1];
       console.log(endEffectorPoint.distanceTo(goalP));
       console.log(endEffectorPoint);
-     for(var f =0; f < 10000; f++){
+     for(var f =0; f < 10; f++){
        //console.log(f);
       //console.log(checkPointLocation(pointsArray[pointsArray.length-1],goalP, margin));
       //console.log("test");
@@ -430,18 +500,34 @@ function createNewArm(armConfig){
 
   function inverseKinematics(destx, desty, destz, pitch, arm){
     console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
+      var hOffset = 0;
+      var endEffectorL = 0;
+      var isCrane = false;
+      var a, b, c;
 
-    // console.log("start point: ")
-    // console.log(calculateStartPoint(arm));
-    // var pointsArray = calcualtePoints(arm);
-    // console.log("Points Array");
-    // console.log(pointsArray);
-    // console.log(80 * Math.sin(0));
-    // console.log(80 * Math.cos(0));
-      var b = 80;
-      var c = 80 + 30;
-      //var l3 = 80;
-      //var h = 100;
+      arm.forEach(function(object){
+        if(object['type'] == 'crane'){
+          hOffset = object['length'];
+          isCrane = true;
+        }
+        else if(object['type'] == 'effector'){
+          endEffectorL = object['length'];
+        }
+
+      });
+      console.log(isCrane);
+      if(isCrane){
+        console.log('crane');
+         b = arm[1]['length'];
+         c = arm[2]['length'] + endEffectorL;
+      }
+      else{
+         b = arm[0]['length'];
+         c = arm[1]['length'] + endEffectorL;
+        console.log('not crane');
+      }
+
+
       var theta1 = Math.atan2(desty, destx);
        if (theta1 < 0) {
          theta1 += (2 * Math.PI);
@@ -451,78 +537,55 @@ function createNewArm(armConfig){
 
       var extent = Math.sqrt(destx * destx + desty * desty);
       extent = Math.min(extent, b + c);
-      var a = Math.sqrt(extent * extent + destz * destz);
-
-      var angleArray = fabrik(arm, extent, destz,0);
-
-
-      // var  a = 80,
-      //      b = 80,
-      //      c = Math.min(d, a + b),
-      //      B = Math.acos((b * b - a * a - c * c) / (-2 * a * c)),
-      //      C = Math.acos((c * c - a * a - b * b) / (-2 * a * b)),
-      //      D = Math.atan2(dy, dx),
-      //      E = D + B + Math.PI + C;
-      //console.log(extent);
-      //var ew = extent - (l3 * Math.cos(pitch* (Math.PI / 180)));
-
-      //var dy = destz - h;
-
-
-      //var z0 = ((destz + l3 * Math.sin(pitch* (Math.PI / 180)) - h));
-
-      //var z0 = destz - h;
-      //var hw = destz + l3 * Math.sin(pitch* (Math.PI / 180));
+      if(isCrane){
+        console.log('crane');
+        var destZWithOffset = destz - hOffset;
+        a = Math.sqrt(extent * extent + destZWithOffset * destZWithOffset);
+      }
+      else{
+        console.log('not crane');
+        a = Math.sqrt(extent * extent + destz * destz);
+      }
+      console.log(kinematicsType);
+      if(kinematicsType == 2){
+        var angleArray = fabrik(arm, extent, destz,0);
+      }
+      console.log(a);
+      console.log(b);
+      console.log(c);
 
 
-    //  console.log(destz - (l3 * Math.sin(pitch* (Math.PI / 180))));
-      //console.log(z0);
-      //var e0 = Math.sqrt(z0 * z0 + ew * ew);
-      //console.log(e0);
-    //  console.log(e0);zdxfg
 
-      //var B = Math.atan2(z0 , ew);
       var A = cosineAngle(b,c,a),
-      //A = (A - A * 2) + 1.57,
       B = cosineAngle(c,a,b),
       C = cosineAngle(a,b,c),
-      D = Math.atan2(extent, destz),
+      D = Math.atan2(extent, destz-hOffset),
       D = Math.min(D, b + c),
        theta2 = D - C,
        theta3 = 3.14159 - A;
 
-       console.log("Angle A "+radToDeg(A));
-       console.log("Angle B "+radToDeg(B));
-       console.log("Angle C "+radToDeg(C));
-       console.log("Side a "+a);
-       console.log("Side b "+b);
-       console.log("Side c "+c);
-       console.log("theta1 "+theta1);
-       console.log("theta2 "+theta2);
-       console.log("theta3 "+theta3);
-
-      //  console.log(C);
-       //theta3 = Math.max(D, 1.57) - Math.min(D, 1.57);
-      // var A = Math.acos((l2 * l2 - e0 * e0 - l1 * l1) / (-2 *e0 * l1));
-      // var C = Math.acos((e0 * e0 - l2 * l2 - l2 * l2) / (-2 * l1 * l2));
-      // var theta2 = A + B;
-      // var theta3 = theta2 - C + 3.14; // elbow up
-      //console.log(-(l2 * l2 - e0 * e0 - l1 * l1) / (2 *e0 * l1));
-      //console.log(A);
-      //console.log(C+);
-      //console.log(theta2);
-      //console.log(theta3);
-
-      //console.log(arm);
-    //  moveArm(arm[0], theta1 * (180/Math.PI), 'y');
-      // moveArm(arm[0], theta2 * (180/Math.PI), 'z');
-      // moveArm(arm[1], (0 - theta3 - 3.14) * (180/Math.PI), 'z');
-      // moveArm(arm[2], 0  * (180/Math.PI), 'z');
 
         arm[0]['object'].rotation.y = theta1;
-        arm[0]['object'].rotation.z = angleArray[0];
-        arm[1]['object'].rotation.z = angleArray[1];
-        arm[2]['object'].rotation.z = angleArray[2];
+        if(kinematicsType == 1){
+          if(isCrane){
+            arm[1]['object'].rotation.z = theta2;
+            arm[2]['object'].rotation.z = theta3;
+            arm[3]['object'].rotation.z = 0;
+          }
+          else{
+            arm[0]['object'].rotation.z = theta2;
+            arm[1]['object'].rotation.z = theta3;
+            arm[2]['object'].rotation.z = 0;
+          }
+
+
+        }
+        else{
+          arm[0]['object'].rotation.z = angleArray[0];
+          arm[1]['object'].rotation.z = angleArray[1];
+          arm[2]['object'].rotation.z = angleArray[2];
+        }
+
 
        //startTweens(arm);
       // arm[1]['object'].rotation.z =  ;
@@ -701,7 +764,10 @@ function init() {
 		});
 		renderer.gammaInput = true;
 		renderer.gammaOutput = true;
+    //renderer.setSize(canvasWidth , canvasHeight);
+
 		renderer.setSize(window.innerWidth , window.innerHeight);
+    //renderer.aspect = canvasRatio;
 		renderer.setClearColor(0x000000, 0 );
 		camera = new THREE.PerspectiveCamera(38,window.innerWidth / window.innerHeight,1,10000);
 		camera.position.set(-510, 240, 200);
@@ -857,6 +923,7 @@ if(axis == "z"){
       .onComplete( function () {
         this.tween.status = false;
       });
+
       //.start();
   }
 
@@ -941,9 +1008,42 @@ try {
 
 
 		</script>
-</head>
-<body>
+  <!-- <div id="wrapper">
+    <div id="container"> </div>
+    <div id="sidebar-wrapper">
+      <ul class="sidebar-nav">
+        <li class="sidebar-brand">
+          <a>
+            Robotic Arm Sim 2017
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div id='page-content-wrapper'>
+      <div class="container-fluid">
+        <div id="controls">
+           <form id="jsonFile" name="jsonFile" method="post">
+            <fieldset>
+              <h2>Import File</h2>
+               <input type='file' id='fileinput'>
+               <input type='button' id='btnLoad' value='Load' onclick='loadFile(createNewArm);'>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div> -->
 
 
-</body>
+
+
+
+
+
+  <!-- ---- -->
+
+
+
+
 </html>
