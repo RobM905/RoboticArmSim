@@ -1,0 +1,4 @@
+{"arm":[
+    { "id":1,"type":"crane", "length":150, "x":false, "y":true, "z":true }
+
+]}

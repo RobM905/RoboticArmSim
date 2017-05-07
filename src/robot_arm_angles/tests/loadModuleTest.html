@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="../js/loadModule.js"></script>
+<script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+</head>
+<body>
+<div id='container'></div>
+
+<script>
+
+
+
+var craneObject, arm, json, testFile;
+
+
+function testLoadModule(){
+
+  testSetup();
+  LoadModule.loadFile(testFile,test);
+}
+var test = function(ArrayToTest){
+  // testAssert(ArrayToTest, arm)
+}
+
+function testSetup(){
+
+
+
+
+
+
+try {
+  testLoadModule();
+
+
+} catch (e) {
+    var errorReport = "Fail.</br>";
+    $('#container').append(errorReport + e);
+}
+
+
+</script>
+
+</body>
