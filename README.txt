@@ -1,4 +1,5 @@
-<!-------------------------------------
+
+-----------------------------------
       Robotic Arm Simulator
 -----------------------------------
 
@@ -20,4 +21,3 @@ Within /src:
 To Run this project:
 - ensure javascript is not dissabled within the browser.
 - open /src/robot_arm_angles/index.html with a modern web browser.
- -->

@@ -1,6 +1,11 @@
 var KinematicsModule = {
+
+  /**
+   * calculates the coordinates for the end effector
+   * @param {Array} arm
+   * @return {null}
+   */
   forwardKinematics: function(arm){
-    // console.log(arm['arm'][0]);
     var totalExtent = 0;
     var totalHeight = 0;
     var currentAngle = 0;
@@ -16,15 +21,6 @@ var KinematicsModule = {
         totalExtent = totalExtent + (segment['length'] * Math.sin(currentAngle));
         totalHeight = totalHeight + (segment['length'] * Math.cos(currentAngle));
 
-
-
-        console.log('extent');
-        console.log(totalExtent);
-        console.log('height');
-        console.log(totalHeight);
-        // jointHeights.push(segment['length']);
-        // console.log(segment['object'].rotation)
-        // jointAngles.push(segment['object'].rotation.z);
         }
     })
     z = totalHeight;
@@ -53,29 +49,46 @@ var KinematicsModule = {
       scene.getObjectByName( "endeffectorRock" ).position.z = y;
     }
 
-    console.log('x '+x);
-    console.log('y '+y);
-    console.log('z '+z);
 
     $('#outputTable tbody tr:first').before('<tr> <td>End Effector location: (x:'+x+', y:'+y+', z:'+z+')</td></tr>');
   },
+
+
+
+
+  /**
+   * calculates the angle between two 2DVectors
+   * @param {THREE.Vector} p1
+   * @param {THREE.Vector} p2
+   * @return {number}
+   */
 
     vectorAngle: function(p1,p2){
       return Math.atan2(p1.y - p2.y ,p1.x - p2.x);
     },
 
+
+    /**
+     * Moves p2 towards p1 based on the length of segLength
+     * @param {THREE.Vector} p1
+     * @param {THREE.Vector} p2
+     * @param {number} segLength
+     * @return {THREE.Vector} newPoint
+     */
+
     movePoints: function(p1, p2, segLength){
       var angle = KinematicsModule.vectorAngle(p1,p2);
-      //console.log("Vector angle: ");
-      //console.log(angle);
-      //console.log("segment length");
-      //console.log(segLength);
       var newPoint =  new THREE.Vector2(segLength * Math.sin(angle), segLength * Math.cos(angle));
       newPoint.add(p1);
-      //console.log("new vector");
-      //console.log(newPoint);
+
       return newPoint;
     },
+
+    /**
+     * Calculates the angles between all vectors in an array
+     * @param {Array} pointArray
+     * @return {Array}
+     */
 
     calculateJointAngles: function(pointArray){
       var angleArray = [];
@@ -86,6 +99,15 @@ var KinematicsModule = {
       return angleArray;
     },
 
+
+    /**
+     * Check to see if point is within margin distance to goalPoint
+     * @param {THREE.Vector} point
+     * @param {THREE.Vector} goalPoint
+      * @param {number} margin
+     * @return {Boolean}
+     */
+
     checkPointLocation: function(point, goalPoint, margin){
       //console.log("distance");
       //console.log(point.distanceTo(goalPoint));
@@ -95,86 +117,73 @@ var KinematicsModule = {
           else{ return false; }
     },
 
+    /**
+     * Calculate arm joint angles from FABRIK and returns array of joint angles
+     * @param {Array} armArray
+      * @param {number} goalx
+      * @param {number} goaly
+      * @param {number} margin
+     * @return {Array}
+     */
+
     fabrik: function(armArray, goalx, goaly, margin){
       if(armArray[0]["type"] == "crane"){
         armArray.splice(0,1);
       }
 
-      //console.log("FABRIK START");
-      //console.log(armArray);
       console.log("GoalPoint: ");
       var goalP = new THREE.Vector2(goalx,goaly);
       console.log(goalP);
-      //console.log("StartPoint: ");
+
       var startPoint = KinematicsModule.calculateStartPoint(armArray);
-      //console.log(startPoint);
-      //console.log("Point Array");
       var pointsArray = KinematicsModule.calculatePoints(armArray);
-      //console.log(pointsArray);
       var endEffectorPoint = pointsArray[pointsArray.length-1];
-
-      //while(!checkPointLocation(endEffectorPoint,goalP, margin)){
         endEffectorPoint = pointsArray[pointsArray.length-1];
-        console.log(endEffectorPoint.distanceTo(goalP));
-        console.log(endEffectorPoint);
        for(var f =0; f < 10; f++){
-         //console.log(f);
-        //console.log(checkPointLocation(pointsArray[pointsArray.length-1],goalP, margin));
-        //console.log("test");
 
-        console.log(pointsArray[0]);
-        console.log(pointsArray[1]);
-        console.log(pointsArray[2]);
-        console.log(pointsArray[3]);
           pointsArray[pointsArray.length-1] = goalP;
-
           for (var i=pointsArray.length-2; i >= 0; i--){
             var newPoint = KinematicsModule.movePoints(pointsArray[i+1],pointsArray[i],armArray[i]["length"]);
             pointsArray[i] = newPoint;
           }
-          // console.log("after backwards");
-          // console.log(pointsArray[0]);
-          // console.log(pointsArray[1]);
-          // console.log(pointsArray[2]);
-          // console.log(pointsArray[3]);
-          //console.log(pointsArray);
+
           if(!KinematicsModule.checkPointLocation(pointsArray[0],startPoint, 0)){
             pointsArray[0] = startPoint;
-            //console.log(pointsArray);
-            //console.log(pointsArray.length);
 
             for (var j=1;j<pointsArray.length; j++){
               var newPoint = KinematicsModule.movePoints(pointsArray[j-1],pointsArray[j],armArray[j-1]["length"]);
               pointsArray[j] = newPoint;
             }
 
-            // console.log("after forwards");
-            // console.log(pointsArray[0]);
-            // console.log(pointsArray[1]);
-            // console.log(pointsArray[2]);
-            // console.log(pointsArray[3]);
-            //console.log(pointsArray);
           }
       }
-      // console.log("Final Points Array");
-      // console.log(pointsArray);
+
       var angleArray = KinematicsModule.calculateJointAngles(pointsArray);
-      //console.log(angleArray);
+
       return angleArray;
 
     },
 
+    /**
+     * Creates the inital start point for the base of the moveable arm
+     * @param {Array} armArray
+     * @return {THREE.Vector}
+     */
+
+
     calculateStartPoint: function(armArray){
-      //console.log(armArray);
       var startPoint = new THREE.Vector2();
-    //  console.log(startPoint);
       if(armArray[0]["type"] == "crane"){
         startPoint.y = startPoint.y + armArray[0]["length"];
       }
-
       return startPoint;
     },
 
+    /**
+     * Creates the inital point vectors from the arm joints returns the array of 2Dvectors
+     * @param {Array} armArray
+     * @return {Array}
+     */
 
 
     calculatePoints: function(armArray){
@@ -193,6 +202,17 @@ var KinematicsModule = {
        })
        return pointArray;
      },
+
+
+     /**
+      * Calculates Joint angles from using trigonometry takes (x,y,z) of goal point and the end effector pitch
+      * @param {number} destx
+      * @param {number} desty
+      * @param {number} destz
+      * @param {number} pitch
+      * @param {Array} arm
+      * @return {THREE.Vector}
+      */
      trigKinematics: function(destx, desty, destz, pitch, arm){
        $('#outputTable tbody tr:first').before('<tr> <td>Trigometric Kinematics </td></tr>');
        console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
@@ -209,18 +229,15 @@ var KinematicsModule = {
            else if(object['type'] == 'effector'){
              endEffectorL = object['length'];
            }
-
          });
-         console.log(isCrane);
+
          if(isCrane){
-           console.log('crane');
             b = arm[1]['length'];
             c = arm[2]['length'] + endEffectorL;
          }
          else{
             b = arm[0]['length'];
             c = arm[1]['length'] + endEffectorL;
-           console.log('not crane');
          }
 
 
@@ -234,20 +251,14 @@ var KinematicsModule = {
          var extent = Math.sqrt(destx * destx + desty * desty);
          extent = Math.min(extent, b + c);
          if(isCrane){
-           console.log('crane');
+
            var destZWithOffset = destz - hOffset;
            a = Math.sqrt(extent * extent + destZWithOffset * destZWithOffset);
          }
          else{
-           console.log('not crane');
+
            a = Math.sqrt(extent * extent + destz * destz);
          }
-         console.log(kinematicsType);
-         console.log(a);
-         console.log(b);
-         console.log("a: "+a);
-
-
 
          var A = KinematicsModule.cosineAngle(b,c,a),
          B = KinematicsModule.cosineAngle(c,a,b),
@@ -256,14 +267,20 @@ var KinematicsModule = {
          D = Math.min(D, b + c),
           theta2 = D - C,
           theta3 = Math.PI - A;
-
-          console.log("B: "+B+"C "+C);
-
           var angleArray = [theta2,theta3];
           return angleArray;
-
-
      },
+
+     /**
+      * Main functions that call all the functions required for inverse kinematics
+      * @param {number} destx
+      * @param {number} desty
+      * @param {number} destz
+      * @param {number} pitch
+      * @param {Array} arm
+      * @param {number} kType
+      * @return {THREE.Vector}
+      */
 
 
      inverseKinematics: function(destx, desty, destz, pitch, arm, kType){
@@ -271,9 +288,6 @@ var KinematicsModule = {
        var angleArray;
        if(kType == 1){
          angleArray = KinematicsModule.trigKinematics(destx, desty, destz, pitch, arm);
-         console.log(arm);
-         console.log("x "+destx+"y "+desty+"z "+destz);
-         console.log(angleArray);
        }
        else if(kType == 2){
           var extent = Math.sqrt(destx * destx + desty * desty);
@@ -308,111 +322,48 @@ var KinematicsModule = {
       }
       InterfaceModule.updateInterface(arm);
       KinematicsModule.forwardKinematics(arm);
-      //  console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
-      //    var hOffset = 0;
-      //    var endEffectorL = 0;
-      //    var isCrane = false;
-      //    var a, b, c;
-       //
-      //    arm.forEach(function(object){
-      //      if(object['type'] == 'crane'){
-      //        hOffset = object['length'];
-      //        isCrane = true;
-      //      }
-      //      else if(object['type'] == 'effector'){
-      //        endEffectorL = object['length'];
-      //      }
-       //
-      //    });
-      //    console.log(isCrane);
-      //    if(isCrane){
-      //      console.log('crane');
-      //       b = arm[1]['length'];
-      //       c = arm[2]['length'] + endEffectorL;
-      //    }
-      //    else{
-      //       b = arm[0]['length'];
-      //       c = arm[1]['length'] + endEffectorL;
-      //      console.log('not crane');
-      //    }
-       //
-       //
-      //    var theta1 = Math.atan2(desty, destx);
-      //     if (theta1 < 0) {
-      //       theta1 += (2 * Math.PI);
-      //    }
-      //    theta1 = theta1 - (theta1 * 2) + 1.57;
-       //
-       //
-      //    var extent = Math.sqrt(destx * destx + desty * desty);
-      //    extent = Math.min(extent, b + c);
-      //    if(isCrane){
-      //      console.log('crane');
-      //      var destZWithOffset = destz - hOffset;
-      //      a = Math.sqrt(extent * extent + destZWithOffset * destZWithOffset);
-      //    }
-      //    else{
-      //      console.log('not crane');
-      //      a = Math.sqrt(extent * extent + destz * destz);
-      //    }
-      //    console.log(kinematicsType);
-      //    if(kinematicsType == 2){
-      //      var angleArray = fabrik(arm, extent, destz,0);
-      //    }
-      //    console.log(a);
-      //    console.log(b);
-      //    console.log(c);
-       //
-       //
-       //
-      //    var A = cosineAngle(b,c,a),
-      //    B = cosineAngle(c,a,b),
-      //    C = cosineAngle(a,b,c),
-      //    D = Math.atan2(extent, destz-hOffset),
-      //    D = Math.min(D, b + c),
-      //     theta2 = D - C,
-      //     theta3 = 3.14159 - A;
-       //
-       //
-      //      arm[0]['object'].rotation.y = theta1;
-      //      if(kinematicsType == 1){
-      //
-       //
-       //
-      //      }
-      //      else{
-      //        arm[0]['object'].rotation.z = angleArray[0];
-      //        arm[1]['object'].rotation.z = angleArray[1];
-      //        arm[2]['object'].rotation.z = angleArray[2];
-      //      }
-       //
-      //  }
-
-
 
 },
+
+/**
+ * Calculates the cosine rule for the lengths given returns the radians for the angle
+ * @param {number} a
+ * @param {number} b
+ * @param {number} c
+ * @return {number}
+ */
 
   cosineAngle: function(a,b,c){
     var temp = (a * a + b * b - c * c) / (2 * a * b);
 
-    console.log(temp);
-    if (-1 <= temp && temp <= 0.9999999)return Math.acos(temp);
-
+    if (-1 <= temp && temp <= 0.9999999){
+      return Math.acos(temp);
+    }
     else if (temp >= 1){
       console.log("temp is more than 1 returning 0 radians");
       return 0;
-      //return Math.sqrt((c * c - (a - b) * (a - b)) / (a * b));
     }
     else if( temp <= -1){
       return Math.PI;
     }
-
     else return "Solution not found";
   },
+
+  /**
+   * Converts from radians to degrees returns the degrees of x
+   * @param {number} x
+   * @return {number}
+   */
 
   radToDeg: function(x){
     return x / Math.PI * 180;
   },
+
+  /**
+   * Converts from degrees to radians returns the radians of x
+   * @param {number} x
+   * @return {number}
+   */
 
   degToRad:function(x){
     return x / 180 * Math.PI;

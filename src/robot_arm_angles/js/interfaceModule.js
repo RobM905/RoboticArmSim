@@ -1,10 +1,20 @@
 var InterfaceModule = {
 
+  /**
+   *  Links load function to HTML load button
+   * @param {null}
+   * @return {null}
+   */
+
   loadButton: function(){
     var JsonArray = LoadModule.loadFile();
     GraphicsModule.createNewArm(JsonArray);
   },
-
+  /**
+   *  Creates the dat.GUI for the user interface
+   * @param {null}
+   * @return {null}
+   */
   setupGui: function(){
       effectController = {
           newGridX: gridX,
@@ -20,11 +30,13 @@ var InterfaceModule = {
       h.add(effectController, "newGridX").name("Show XZ grid");
       h.add(effectController, "newGridY").name("Show YZ grid");
       h.add(effectController, "newGridZ").name("Show XY grid");
-      h.add(effectController, "newGround").name("Show ground");
-      h.add(effectController, "newAxes").name("Show axes");
 
   },
-
+  /**
+   *  Remakes and updates GUI when new arm is laoded
+   * @param {null}
+   * @return {null}
+   */
   remakeGUI: function(armconfig){
     gui.destroy();
     effectController = {
@@ -41,8 +53,6 @@ var InterfaceModule = {
     h.add(effectController, "newGridX").name("Show XZ grid");
     h.add(effectController, "newGridY").name("Show YZ grid");
     h.add(effectController, "newGridZ").name("Show XY grid");
-    h.add(effectController, "newGround").name("Show ground");
-    h.add(effectController, "newAxes").name("Show axes");
     h = gui.addFolder("Arm angles");
     armconfig.forEach(function(object){
         object["angle"] = 0.0;
@@ -74,6 +84,13 @@ var InterfaceModule = {
     };
     gui.add(obj,'Move');
   },
+
+  /**
+   *  Toggles the kinematics type
+   * @param {HTML.Element} button
+   * @param {number} type
+   * @return {null}
+   */
   toggleKinematics: function(button,type){
     kinematicsType = type;
     $('#analyticalButton').removeClass("active");
@@ -81,18 +98,13 @@ var InterfaceModule = {
     $(button).addClass("active");
   },
 
-  // toggleMotion: function(button,type){
-  //   motionType = type;
-  //   $('#JJMButton').removeClass("active");
-  //   $('#SlewButton').removeClass("active");
-  //   $(button).addClass("active");
-  // },
-
+  /**
+   *  Updates GUI values when arm is moved
+   * @param {Array} armConfig
+   * @return {null}
+   */
   updateInterface: function(armConfig){
-
-
       armConfig.forEach( function(object){
-        //object['controllers'].setValue(object['angle']);
         console.log(object['controllers']);
       })
   }

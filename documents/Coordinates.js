@@ -23,20 +23,20 @@ var Coordinates = {
         console.log(scene.getObjectByName( "gridx" ));
 
     },
-    drawGround: function(params) {
-        params = params || {};
-        var size = params.size !== undefined ? params.size : 100;
-        var color = params.color !== undefined ? params.color : 0xFFFFFF;
-        var ground = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshLambertMaterial({
-            color: color,
-            polygonOffset: true,
-            polygonOffsetFactor: 1.0,
-            polygonOffsetUnits: 4.0
-        }));
-        ground.rotation.x = -Math.PI / 2;
-        ground.name = "ground";
-        scene.add(ground);
-    },
+    // drawGround: function(params) {
+    //     params = params || {};
+    //     var size = params.size !== undefined ? params.size : 100;
+    //     var color = params.color !== undefined ? params.color : 0xFFFFFF;
+    //     var ground = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshLambertMaterial({
+    //         color: color,
+    //         polygonOffset: true,
+    //         polygonOffsetFactor: 1.0,
+    //         polygonOffsetUnits: 4.0
+    //     }));
+    //     ground.rotation.x = -Math.PI / 2;
+    //     ground.name = "ground";
+    //     scene.add(ground);
+    // },
     drawAxes: function(params) {
         params = params || {};
         var axisRadius = params.axisRadius !== undefined ? params.axisRadius : 0.04;

@@ -1,7 +1,4 @@
-/*
- * @author mrdoob / http://mrdoob.com
- * Running this will allow you to drag three.js objects around the screen.
- */
+
 
 THREE.DragControls = function ( _objects, _camera, _domElement, armConfig ) {
 

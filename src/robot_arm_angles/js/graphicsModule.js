@@ -1,7 +1,13 @@
 var GraphicsModule = {
+
+
+  /**
+   * initialised THREE.js objects
+   * @param {null}
+   * @return {null}
+   */
   init: function(){
     container = document.getElementById( 'container' );
-
     var canvasWidth = $(container).width();
     var canvasHeight = $(container).height();
     var canvasRatio = canvasWidth / canvasHeight;
@@ -11,21 +17,28 @@ var GraphicsModule = {
     });
     renderer.gammaInput = true;
     renderer.gammaOutput = true;
-    //renderer.setSize(canvasWidth , canvasHeight);
-
     renderer.setSize(window.innerWidth , window.innerHeight);
-    //renderer.aspect = canvasRatio;
     renderer.setClearColor(0x000000, 0 );
     camera = new THREE.PerspectiveCamera(38,window.innerWidth / window.innerHeight,1,10000);
     camera.position.set(-510, 240, 200);
      cameraControls = new THREE.OrbitControls(camera,renderer.domElement,container);
-    //cameraControls = new THREE.OrbitAndPanControls(camera,renderer.domElement);
     cameraControls.target.set(0, 120, 0);
     camera.position.set(0, 1000,1000);
-    //cameraControls.target.set(-13, 60, 2);
     GraphicsModule.fillScene();
 
   },
+
+
+
+
+
+  /**
+   *  created robot extener object
+   * @param {THREE.Object} part
+   * @param {number} length
+   * @param {THREE.Material} material
+   * @return {null}
+   */
 
   createRobotExtender: function(part, length, material) {
 
@@ -43,8 +56,13 @@ var GraphicsModule = {
         part.add(cylinder);
     },
 
+    /**
+     *  calls functions to create a new scene and arm
+     * @param {Array[]} armConfig
+     * @return {null}
+     */
   createNewArm: function(armConfig){
-    // console.log(scene);
+
     while (scene.children.length)
       {
       scene.remove(scene.children[0]);
@@ -80,39 +98,24 @@ var GraphicsModule = {
   		});
 
 
-
-      // var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
-      // var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
-      // rock.position.z = 100;
-      // rock.position.x = 110;
-      // scene.add(rock);
-      // DragObject.push(rock);
-
-
   		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
-
-  		//base.position.y =5;
   		scene.add(base);
       GraphicsModule.drawHelpers();
 
       arm = new THREE.Object3D();
       for (x in armConfig['arm']) {
 
-
-
-
       var tempArm = new THREE.Object3D();
-
       var length = armConfig['arm'][x]['length'];
       if(armConfig['arm'][x]['type'] == 'crane'){
         GraphicsModule.createRobotCrane(tempArm, length, robotUpperArmMaterial);
         armConfig['arm'][x]['object'] = tempArm;
-        //DragObject.push(tempArm);
+
       }
       else if(armConfig['arm'][x]['type'] == 'extender'){
         GraphicsModule.createRobotExtender(tempArm, length, robotForearmMaterial);
         armConfig['arm'][x]['object'] = tempArm;
-        //DragObject.push(tempArm);
+
       }
       else if(armConfig['arm'][x]['type'] == 'effector'){
         GraphicsModule.createEndEffector(tempArm,  robotUpperArmMaterial)
@@ -120,16 +123,16 @@ var GraphicsModule = {
         endVector = new THREE.Vector3().setFromMatrixPosition(tempArm.matrixWorld);
         tempArm.position = endVector;
         armConfig['arm'][x]['object'] = tempArm;
-      //  DragObject.push(tempArm);
 
-        console.log(tempArm);
+
+
       }
 
 
   }
 
     for (var i = armConfig['arm'].length-1; i != -1; --i) {
-      //console.log(i);
+
       if(i != 0){
         var armObject = armConfig['arm'][i]['object'];
         armObject.position.y = armConfig['arm'][i-1]['length'];
@@ -138,7 +141,7 @@ var GraphicsModule = {
       else{
         arm.add(armConfig['arm'][i]['object']);
       }
-          //console.log(armObject);
+
     }
 
     $('#outputTable tbody tr:first').before('<tr> <td>Arm Config Loaded</td></tr>');
@@ -155,6 +158,11 @@ var GraphicsModule = {
     KinematicsModule.forwardKinematics(armConfig['arm']);
   },
 
+  /**
+   *  Creates the background scene objects
+   * @param {null}
+   * @return {null}
+   */
   fillScene: function(){
     scene = new THREE.Scene();
     var ambientLight = new THREE.AmbientLight(0x222222);
@@ -166,6 +174,14 @@ var GraphicsModule = {
     scene.add(light);
     scene.add(light2);
   },
+
+  /**
+   *  created robot crane object
+   * @param {THREE.Object} part
+   * @param {number} length
+   * @param {THREE.Material} material
+   * @return {null}
+   */
   createRobotCrane: function(part, length, material) {
   		var box = new THREE.Mesh(new THREE.CubeGeometry(18,length,18),material);
   		box.position.y = length / 2;
@@ -176,11 +192,15 @@ var GraphicsModule = {
   		cylinder1.rotation.x = 90 * Math.PI / 180;
   		cylinder1.position.y = 0;
   		part.add(cylinder1);
-  		// var sphere = new THREE.Mesh(new THREE.SphereGeometry(20,32,16),material);
-  		// sphere.position.y = length;
-  		// part.add(sphere);
-  },
 
+  },
+  /**
+   *  created robot body object
+   * @param {THREE.Object} part
+   * @param {number} length
+   * @param {THREE.Material} material
+   * @return {null}
+   */
   createRobotBody: function(part, length, material) {
   		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(50,12,length / 2,18),material);
   		cylinder.position.y = length / 4;
@@ -191,11 +211,15 @@ var GraphicsModule = {
   		var box = new THREE.Mesh(new THREE.CubeGeometry(12,length / 4,110),material);
   		box.position.y = length / 2;
   		part.add(box);
-  		//var sphere = new THREE.Mesh(new THREE.SphereGeometry(20,32,16),material);
-  		//sphere.position.y = length;6
-  		//part.add(sphere);
-  },
 
+  },
+  /**
+   *  created robot end effector object
+   * @param {THREE.Object} part
+   * @param {number} length
+   * @param {THREE.Material} material
+   * @return {null}
+   */
   createEndEffector: function(part, material){
   		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(15,15,10,32),material);
   		cylinder.position.y = 0;
@@ -209,10 +233,16 @@ var GraphicsModule = {
   				shininess: 20
   		}));
   		cone.position.y = 15;
-  		//part.add(cone);
+
   },
 
 
+
+  /**
+   *  calls functions to render the THREE.js Scene
+   * @param {null}
+   * @return {null}
+   */
   render: function() {
   		var delta = clock.getDelta();
   		cameraControls.update(delta);
@@ -228,6 +258,14 @@ var GraphicsModule = {
   		renderer.render(scene, camera);
   },
 
+
+
+
+  /**
+   *  Starts all the animation tweens
+   * @param {Array} armConfig
+   * @return {null}
+   */
   startTweens: function(armconfig){
     armconfig.forEach(function(object){
        //console.log(object["tween"]);
@@ -237,16 +275,18 @@ var GraphicsModule = {
 
   },
 
+
+
+
+
+  /**
+   *  Draws the grids in the scene
+   * @param {null}
+   * @return {null}
+   */
   drawHelpers: function() {
-    console.log(ground);
-  		if (ground) {
-  				Coordinates.drawGround({
-  						size: 10000
-  				});
-  		}
-      else{ scene.remove(scene.getObjectByName( "ground" ));}
   		if (gridX) {
-  				Coordinates.drawGrid({
+  				GraphicsModule.drawGrid({
   						size: 10000,
   						scale: 0.01,
               orientation: "x"
@@ -254,7 +294,7 @@ var GraphicsModule = {
   		}
      else{ scene.remove(scene.getObjectByName( "gridx" ));}
   		if (gridY) {
-  				Coordinates.drawGrid({
+  				GraphicsModule.drawGrid({
   						size: 10000,
   						scale: 0.01,
   						orientation: "y"
@@ -262,7 +302,7 @@ var GraphicsModule = {
   		}
        else{ scene.remove(scene.getObjectByName( "gridy" ));}
   		if (gridZ) {
-  				Coordinates.drawGrid({
+  				GraphicsModule.drawGrid({
   						size: 10000,
   						scale: 0.01,
   						orientation: "z"
@@ -270,20 +310,20 @@ var GraphicsModule = {
   		}
       else{ scene.remove(scene.getObjectByName( "gridz" ));}
   		if (axes) {
-  				Coordinates.drawAllAxes({
+  				GraphicsModule.drawAllAxes({
   						axisLength: 200,
   						axisRadius: 1,
   						axisTess: 50
   				});
   		}
-       else{
-         scene.remove(scene.getObjectByName( "arrowX" ));
-         scene.remove(scene.getObjectByName( "arrowY" ));
-         scene.remove(scene.getObjectByName( "arrowZ" ));
-         scene.remove(scene.getObjectByName( "arrow" ));
 
-     }
   },
+
+  /**
+   *  adds the rendering Canvas to the HTML Page
+   * @param {null}
+   * @return {null}
+   */
   addToDOM: function() {
   		var container = document.getElementById('container');
   		var canvas = container.getElementsByTagName('canvas');
@@ -291,7 +331,79 @@ var GraphicsModule = {
   				container.removeChild(canvas[0]);
   		}
   		container.appendChild(renderer.domElement);
-      console.log(renderer.domElement);
-  }
+  },
+
+
+
+drawGrid: function(params) {
+    params = params || {};
+    var size = params.size !== undefined ? params.size : 100;
+    var scale = params.scale !== undefined ? params.scale : 0.1;
+    var orientation = params.orientation !== undefined ? params.orientation : "x";
+    var grid = new THREE.Mesh(new THREE.PlaneGeometry(size, size, size * scale, size * scale), new THREE.MeshBasicMaterial({
+
+        color: 0x555555,
+        wireframe: true
+    }));
+    if (orientation === "x") {
+        grid.rotation.x = -Math.PI / 2;
+        grid.name = "gridx";
+    } else if (orientation === "y") {
+        grid.rotation.y = -Math.PI / 2;
+        grid.name = "gridy";
+    } else if (orientation === "z") {
+        grid.rotation.z = -Math.PI / 2;
+        grid.name = "gridz";
+    }
+    scene.add(grid);
+    console.log(scene.getObjectByName( "gridx" ));
+
+},
+
+drawAllAxes: function(params) {
+    params = params || {};
+    var axisRadius = params.axisRadius !== undefined ? params.axisRadius : 0.04;
+    var axisLength = params.axisLength !== undefined ? params.axisLength : 11;
+    var axisTess = params.axisTess !== undefined ? params.axisTess : 48;
+    var axisXMaterial = new THREE.MeshLambertMaterial({
+        color: 0xFF0000
+    });
+    var axisYMaterial = new THREE.MeshLambertMaterial({
+        color: 0x00FF00
+    });
+    var axisZMaterial = new THREE.MeshLambertMaterial({
+        color: 0x0000FF
+    });
+    axisXMaterial.side = THREE.DoubleSide;
+    axisYMaterial.side = THREE.DoubleSide;
+    axisZMaterial.side = THREE.DoubleSide;
+    var axisX = new THREE.Mesh(new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, axisTess, 1, true), axisXMaterial);
+    var axisY = new THREE.Mesh(new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, axisTess, 1, true), axisYMaterial);
+    var axisZ = new THREE.Mesh(new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, axisTess, 1, true), axisZMaterial);
+    axisX.rotation.z = -Math.PI / 2;
+    axisX.position.x = axisLength / 2 - 1;
+    axisY.position.y = axisLength / 2 - 1;
+    axisZ.rotation.y = -Math.PI / 2;
+    axisZ.rotation.z = -Math.PI / 2;
+    axisZ.position.z = axisLength / 2 - 1;
+    axisX.name = 'axisX';
+    axisY.name = 'axisY';
+    axisZ.name = 'axisZ';
+    scene.add(axisX);
+    scene.add(axisY);
+    scene.add(axisZ);
+    var arrowX = new THREE.Mesh(new THREE.CylinderGeometry(0, 4 * axisRadius, 4 * axisRadius, axisTess, 1, true), axisXMaterial);
+    var arrowY = new THREE.Mesh(new THREE.CylinderGeometry(0, 4 * axisRadius, 4 * axisRadius, axisTess, 1, true), axisYMaterial);
+    var arrowZ = new THREE.Mesh(new THREE.CylinderGeometry(0, 4 * axisRadius, 4 * axisRadius, axisTess, 1, true), axisZMaterial);
+    arrowX.rotation.z = -Math.PI / 2;
+    arrowX.position.x = axisLength - 1 + axisRadius * 4 / 2;
+    arrowY.position.y = axisLength - 1 + axisRadius * 4 / 2;
+    arrowZ.rotation.z = -Math.PI / 2;
+    arrowZ.rotation.y = -Math.PI / 2;
+    arrowZ.position.z = axisLength - 1 + axisRadius * 4 / 2;
+    scene.add(arrowX);
+    scene.add(arrowY);
+    scene.add(arrowZ);
+}
 
 }

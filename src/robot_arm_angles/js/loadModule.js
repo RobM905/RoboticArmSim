@@ -1,8 +1,11 @@
 var LoadModule = {
 
-	// getArray: function(JsonArray){
-	// 	return JsonArray;
-	// },
+	/**
+	 * Adds two numbers
+	 * @param {File} fileInput
+	 * @param {function} callback
+	 * @return {null}
+	 */
 
 	loadFile: function(fileInput,callback) {
 
@@ -14,8 +17,6 @@ var LoadModule = {
 			 Reader.onload = function (e){
 	        var result = e.target.result;
 	  			var JsonArray = JSON.parse(result);
-					console.log(JsonArray);
-					console.log(callback);
 	        callback(JsonArray);
 	     };
 		  	Reader.readAsText(fileInput);
