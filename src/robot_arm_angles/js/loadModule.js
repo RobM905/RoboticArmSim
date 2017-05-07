@@ -1,7 +1,7 @@
 var LoadModule = {
 
 	/**
-	 * Adds two numbers
+	 * Loads in JSONFile then calls function with loaded data
 	 * @param {File} fileInput
 	 * @param {function} callback
 	 * @return {null}

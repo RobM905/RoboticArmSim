@@ -11,7 +11,6 @@ Within /src:
     - /css (contianing all css for the main program page)
     - /js (containing all the JavaScript files made)
     - /lib (containing all external libraries used)
-    - /fonts (fonts file for bootstrap)
     - /tests (containing all unit testing code)
     - index.html (the main page for the application)
 

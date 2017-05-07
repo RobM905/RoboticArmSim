@@ -195,24 +195,24 @@ var GraphicsModule = {
 
   },
   /**
-   *  created robot body object
-   * @param {THREE.Object} part
-   * @param {number} length
-   * @param {THREE.Material} material
-   * @return {null}
-   */
-  createRobotBody: function(part, length, material) {
-  		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(50,12,length / 2,18),material);
-  		cylinder.position.y = length / 4;
-  		part.add(cylinder);
-  		cylinder = new THREE.Mesh(new THREE.CylinderGeometry(12,50,length / 2,18),material);
-  		cylinder.position.y = 3 * length / 4;
-  		part.add(cylinder);
-  		var box = new THREE.Mesh(new THREE.CubeGeometry(12,length / 4,110),material);
-  		box.position.y = length / 2;
-  		part.add(box);
-
-  },
+  //  *  created robot body object
+  //  * @param {THREE.Object} part
+  //  * @param {number} length
+  //  * @param {THREE.Material} material
+  //  * @return {null}
+  //  */
+  // createRobotBody: function(part, length, material) {
+  // 		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(50,12,length / 2,18),material);
+  // 		cylinder.position.y = length / 4;
+  // 		part.add(cylinder);
+  // 		cylinder = new THREE.Mesh(new THREE.CylinderGeometry(12,50,length / 2,18),material);
+  // 		cylinder.position.y = 3 * length / 4;
+  // 		part.add(cylinder);
+  // 		var box = new THREE.Mesh(new THREE.CubeGeometry(12,length / 4,110),material);
+  // 		box.position.y = length / 2;
+  // 		part.add(box);
+  //
+  // },
   /**
    *  created robot end effector object
    * @param {THREE.Object} part
