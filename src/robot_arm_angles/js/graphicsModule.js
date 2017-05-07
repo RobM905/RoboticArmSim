@@ -81,12 +81,12 @@ var GraphicsModule = {
 
 
 
-      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
-      var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
-      rock.position.z = 100;
-      rock.position.x = 110;
-      scene.add(rock);
-      DragObject.push(rock);
+      // var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+      // var rock =  new THREE.Mesh(rockgeometry, robotBaseMaterial);
+      // rock.position.z = 100;
+      // rock.position.x = 110;
+      // scene.add(rock);
+      // DragObject.push(rock);
 
 
   		var base = new THREE.Mesh(new THREE.CylinderGeometry(30,30,10,32),robotBaseMaterial);
@@ -98,7 +98,7 @@ var GraphicsModule = {
       arm = new THREE.Object3D();
       for (x in armConfig['arm']) {
 
-        
+
 
 
       var tempArm = new THREE.Object3D();
@@ -140,17 +140,19 @@ var GraphicsModule = {
       }
           //console.log(armObject);
     }
+
+    $('#outputTable tbody tr:first').before('<tr> <td>Arm Config Loaded</td></tr>');
     arm.rotation.y = arm.rotation.y + 1.5708;
     scene.add(arm);
     var objects =[];
     objects.push(arm);
     console.log(objects);
-    dragControls = new THREE.DragControls( DragObject, camera, renderer.domElement );
+    dragControls = new THREE.DragControls( DragObject, camera, renderer.domElement, armConfig['arm'] );
     console.log(dragControls);
   	dragControls.addEventListener( 'dragstart', function ( event ) { cameraControls.enabled = false;  } );
-  	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; KinematicsModule.inverseKinematics(DragObject[0].position.x, DragObject[0].position.z, DragObject[0].position.y,50, armConfig['arm'],kinematicsType)} );
+  	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; } );
     InterfaceModule.remakeGUI(armConfig['arm']);
-
+    KinematicsModule.forwardKinematics(armConfig['arm']);
   },
 
   fillScene: function(){

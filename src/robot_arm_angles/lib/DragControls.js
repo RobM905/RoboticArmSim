@@ -3,7 +3,7 @@
  * Running this will allow you to drag three.js objects around the screen.
  */
 
-THREE.DragControls = function ( _objects, _camera, _domElement ) {
+THREE.DragControls = function ( _objects, _camera, _domElement, armConfig ) {
 
 	if ( _objects instanceof THREE.Camera ) {
 		console.warn( 'THREE.DragControls: Constructor now expects ( objects, camera, domElement )' );
@@ -17,6 +17,8 @@ THREE.DragControls = function ( _objects, _camera, _domElement ) {
 	var _intersection = new THREE.Vector3();
 	var _selected = null, _hovered = null;
 	var scope = this;
+	var arm = armConfig;
+
 
 	function activate() {
 
@@ -51,6 +53,8 @@ THREE.DragControls = function ( _objects, _camera, _domElement ) {
 		if ( _selected && scope.enabled ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 				_selected.position.copy( _intersection.sub( _offset ) );
+				console.log(_selected.position);
+				KinematicsModule.inverseKinematics(_selected.position.x, _selected.position.z, _selected.position.y,50, arm,kinematicsType)
 			}
 			scope.dispatchEvent( { type: 'drag', object: _selected } );
 			return;

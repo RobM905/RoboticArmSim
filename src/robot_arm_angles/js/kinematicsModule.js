@@ -1,26 +1,23 @@
 var KinematicsModule = {
   forwardKinematics: function(arm){
+    // console.log(arm['arm'][0]);
     var totalExtent = 0;
     var totalHeight = 0;
+    var currentAngle = 0;
     var theta1 = arm[0]['object'].rotation.y;
-    var x, y;
+    var x, y, z;
+    console.log('theta1');
+    console.log(theta1);
 
     arm.forEach(function(segment){
       if(segment['type']!='effector'){
-        console.log(segment['object'].rotation.z);
-        if(segment['object'].rotation.z == 0){
-          totalHeight = totalHeight + segment['length'];
-        }
-        else if((segment['object'].rotation.z == 1.5708 )|| (segment['object'].rotation.z == 4.71239)){
-            totalExtent = totalExtent + segment['length'];
-        }
-        else{
-          totalExtent = totalExtent + (segment['length'] * Math.cos(segment['object'].rotation.z));
-          totalHeight = totalHeight + (segment['length'] * Math.sin(segment['object'].rotation.z));
+        currentAngle = currentAngle + segment['object'].rotation.z;
+        console.log('currentAngle: '+currentAngle);
+        totalExtent = totalExtent + (segment['length'] * Math.sin(currentAngle));
+        totalHeight = totalHeight + (segment['length'] * Math.cos(currentAngle));
 
-        }
-        console.log('theta1');
-        console.log(theta1);
+
+
         console.log('extent');
         console.log(totalExtent);
         console.log('height');
@@ -30,42 +27,38 @@ var KinematicsModule = {
         // jointAngles.push(segment['object'].rotation.z);
         }
     })
-    if(theta1 == 0){
-      x = 0;
-      y = totalExtent;
+    z = totalHeight;
+    x = totalExtent * Math.sin(theta1);
+    y = totalExtent * Math.cos(theta1);
+    if(!scene.getObjectByName( "endeffectorRock" )){
+      var dragObjectMaterial = new THREE.MeshPhongMaterial({
+          transparent: true,
+          opacity: 0,
+          color: 0x6E23BB,
+          specular: 0x6E23BB
+
+      });
+      var rockgeometry = new THREE.SphereGeometry(20, 6, 4);
+      var rock =  new THREE.Mesh(rockgeometry, dragObjectMaterial);
+      rock.position.z = y;
+      rock.position.x = x;
+      rock.position.y = z;
+      rock.name = "endeffectorRock";
+      DragObject.push(rock);
+      scene.add(rock);
     }
-    else if(){
-      
+    else{
+      scene.getObjectByName( "endeffectorRock" ).position.y = z;
+      scene.getObjectByName( "endeffectorRock" ).position.x = x;
+      scene.getObjectByName( "endeffectorRock" ).position.z = y;
     }
-    x = totalExtent * Math.cos(theta1);
-    y = totalExtent * Math.sin(theta1);
+
     console.log('x '+x);
     console.log('y '+y);
+    console.log('z '+z);
+
+    $('#outputTable tbody tr:first').before('<tr> <td>End Effector location: (x:'+x+', y:'+y+', z:'+z+')</td></tr>');
   },
-
-    // console.log('jointHeights\n');
-    // console.log(jointHeights);
-    // console.log('jointAngles\n');
-    // console.log(jointAngles);
-    // for (i=1; i<4; i++){
-    //     angleSum += jointAngles[i];
-    //     var tempHeight = jointHeights[i] * Math.cos(  angleSum ).toFixed(15);
-    //     console.log(tempHeight);
-    //     var tempExtent = jointHeights[i] * Math.sin(  angleSum );
-    //     console.log(tempExtent);
-    //     h += tempHeight;
-    //     e += tempExtent;
-    //   }
-    //   x = e * Math.sin(jointAngles[1]);
-    //   y = e * Math.cos(jointAngles[1]).toFixed(15);
-    //   console.log(h);
-    //   console.log(e);
-    //   console.log('effect location from kinematics');
-    //   console.log(x,y,h);
-    //
-    //   $('#outputTable tr:last').after('<tr>End Effector Location: ('+x+', '+y+', '+h+')</tr>');
-
-
 
     vectorAngle: function(p1,p2){
       return Math.atan2(p1.y - p2.y ,p1.x - p2.x);
@@ -201,6 +194,7 @@ var KinematicsModule = {
        return pointArray;
      },
      trigKinematics: function(destx, desty, destz, pitch, arm){
+       $('#outputTable tbody tr:first').before('<tr> <td>Trigometric Kinematics </td></tr>');
        console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
          var hOffset = 0;
          var endEffectorL = 0;
@@ -296,12 +290,24 @@ var KinematicsModule = {
           arm[1]['object'].rotation.z = angleArray[0];
           arm[2]['object'].rotation.z = angleArray[1];
           arm[3]['object'].rotation.z = 0;
+
+
+          arm[0]['angle'] =  KinematicsModule.radToDeg( theta1);
+          arm[1]['angle'] =  KinematicsModule.radToDeg( angleArray[0]);
+          arm[2]['angle'] =  KinematicsModule.radToDeg( angleArray[1]);
+
       }
       else{
           arm[0]['object'].rotation.z = angleArray[0];
           arm[1]['object'].rotation.z = angleArray[1];
           arm[2]['object'].rotation.z = 0;
+
+          arm[0]['angle'] =  KinematicsModule.radToDeg(angleArray[0]);
+          arm[1]['angle'] =  KinematicsModule.radToDeg( angleArray[1]);
+
       }
+      InterfaceModule.updateInterface(arm);
+      KinematicsModule.forwardKinematics(arm);
       //  console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
       //    var hOffset = 0;
       //    var endEffectorL = 0;

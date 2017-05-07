@@ -37,7 +37,7 @@ var InterfaceModule = {
 
 
     gui = new dat.GUI();
-    var h = gui.addFolder("Grid display");
+    h = gui.addFolder("Grid display");
     h.add(effectController, "newGridX").name("Show XZ grid");
     h.add(effectController, "newGridY").name("Show YZ grid");
     h.add(effectController, "newGridZ").name("Show XY grid");
@@ -46,21 +46,25 @@ var InterfaceModule = {
     h = gui.addFolder("Arm angles");
     armconfig.forEach(function(object){
         object["angle"] = 0.0;
+        object['controllers'] = [];
 
         if(object["z"]){
-            h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "z").onChange(function(angle){
+          console.log("------------------------------");
+          console.log(object);
+          object['controllers'].push(h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "z").listen().onChange(function(angle){
               MovementModule.moveArm(object, angle, "z",armconfig)
-            });
+            }));
+            console.log(this);
         }
         if(object["y"]){
-            h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "y").onChange(function(angle){
+          object['controllers'].push(h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "y").listen().onChange(function(angle){
               MovementModule.moveArm(object, angle,"y",armconfig)
-            });
+            }));
         }
         if(object["x"]){
-          h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "x").onChange(function(angle){
+          object['controllers'].push(h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "x").listen().onChange(function(angle){
             MovementModule.moveArm(object, angle*Math.PI / 4,"x",armconfig)
-          });
+          }));
         }
     });
     var obj = { Move:function(){
@@ -77,10 +81,20 @@ var InterfaceModule = {
     $(button).addClass("active");
   },
 
-  toggleMotion: function(button,type){
-    motionType = type;
-    $('#JJMButton').removeClass("active");
-    $('#SlewButton').removeClass("active");
-    $(button).addClass("active");
+  // toggleMotion: function(button,type){
+  //   motionType = type;
+  //   $('#JJMButton').removeClass("active");
+  //   $('#SlewButton').removeClass("active");
+  //   $(button).addClass("active");
+  // },
+
+  updateInterface: function(armConfig){
+
+
+      armConfig.forEach( function(object){
+        //object['controllers'].setValue(object['angle']);
+        console.log(object['controllers']);
+      })
   }
+
 }
