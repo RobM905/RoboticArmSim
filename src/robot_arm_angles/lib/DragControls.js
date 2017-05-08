@@ -46,11 +46,9 @@ THREE.DragControls = function ( _objects, _camera, _domElement, armConfig ) {
 		 _mouse.y = - ( mouseY / _domElement.height ) * 2 + 1;
 
 		_raycaster.setFromCamera( _mouse, _camera );
-		//console.log(_raycaster);
 		if ( _selected && scope.enabled ) {
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
 				_selected.position.copy( _intersection.sub( _offset ) );
-				console.log(_selected.position);
 				KinematicsModule.inverseKinematics(_selected.position.x, _selected.position.z, _selected.position.y,50, arm,kinematicsType)
 			}
 			scope.dispatchEvent( { type: 'drag', object: _selected } );
@@ -82,7 +80,6 @@ THREE.DragControls = function ( _objects, _camera, _domElement, armConfig ) {
 		event.preventDefault();
 		_raycaster.setFromCamera( _mouse, _camera );
 		var intersects = _raycaster.intersectObjects( _objects );
-		console.log(intersects);
 		if ( intersects.length > 0 ) {
 			_selected = intersects[ 0 ].object;
 			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {

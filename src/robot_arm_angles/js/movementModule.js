@@ -51,7 +51,7 @@ var MovementModule = {
 
 
   }
-    console.log(armObject);
+
   },
 
 

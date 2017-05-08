@@ -24,7 +24,7 @@ var InterfaceModule = {
           newAxes: axes
 
       };
-      var obj = { test:function(){ console.log("clicked") }};
+
       gui = new dat.GUI();
       var h = gui.addFolder("Grid display");
       h.add(effectController, "newGridX").name("Show XZ grid");
@@ -59,12 +59,11 @@ var InterfaceModule = {
         object['controllers'] = [];
 
         if(object["z"]){
-          console.log("------------------------------");
-          console.log(object);
+
           object['controllers'].push(h.add(object, "angle", -180.0, 180.0, 0.025).name(object["id"] + "z").listen().onChange(function(angle){
               MovementModule.moveArm(object, angle, "z",armconfig)
             }));
-            console.log(this);
+
         }
         if(object["y"]){
           object['controllers'].push(h.add(object, "angle", 0.0, 360.0, 0.025).name(object["id"] + "y").listen().onChange(function(angle){
@@ -105,7 +104,7 @@ var InterfaceModule = {
    */
   updateInterface: function(armConfig){
       armConfig.forEach( function(object){
-        console.log(object['controllers']);
+
       })
   }
 

@@ -1,8 +1,4 @@
-/*!
- * Start Bootstrap - Simple Sidebar (http://startbootstrap.com/)
- * Copyright 2013-2016 Start Bootstrap
- * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
- */
+
 
  body {
     overflow-x: hidden;
@@ -18,9 +14,7 @@
     transition: all 0.5s ease;
 }
 
-/*#wrapper.toggled {
-    padding-left: 250px;
-}*/
+
 
 .btn.active[data-active-class = "primary"]{
   color:#fff;
@@ -43,9 +37,6 @@
     transition: all 0.5s ease;
 }
 
-/*#wrapper.toggled #sidebar-wrapper {
-    width: 250px;
-}*/
 
 #page-content-wrapper {
     width: 100%;
@@ -55,10 +46,10 @@
 
 #wrapper.toggled #page-content-wrapper {
     position: absolute;
-    /*margin-right: -250px;*/
+
 }
 
-/* Sidebar Styles */
+
 
 .sidebar-nav {
     position: absolute;

@@ -149,9 +149,7 @@ var GraphicsModule = {
     scene.add(arm);
     var objects =[];
     objects.push(arm);
-    console.log(objects);
     dragControls = new THREE.DragControls( DragObject, camera, renderer.domElement, armConfig['arm'] );
-    console.log(dragControls);
   	dragControls.addEventListener( 'dragstart', function ( event ) { cameraControls.enabled = false;  } );
   	dragControls.addEventListener( 'dragend', function ( event ) { cameraControls.enabled = true; } );
     InterfaceModule.remakeGUI(armConfig['arm']);
@@ -194,25 +192,7 @@ var GraphicsModule = {
   		part.add(cylinder1);
 
   },
-  /**
-  //  *  created robot body object
-  //  * @param {THREE.Object} part
-  //  * @param {number} length
-  //  * @param {THREE.Material} material
-  //  * @return {null}
-  //  */
-  // createRobotBody: function(part, length, material) {
-  // 		var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(50,12,length / 2,18),material);
-  // 		cylinder.position.y = length / 4;
-  // 		part.add(cylinder);
-  // 		cylinder = new THREE.Mesh(new THREE.CylinderGeometry(12,50,length / 2,18),material);
-  // 		cylinder.position.y = 3 * length / 4;
-  // 		part.add(cylinder);
-  // 		var box = new THREE.Mesh(new THREE.CubeGeometry(12,length / 4,110),material);
-  // 		box.position.y = length / 2;
-  // 		part.add(box);
-  //
-  // },
+
   /**
    *  created robot end effector object
    * @param {THREE.Object} part
@@ -268,8 +248,7 @@ var GraphicsModule = {
    */
   startTweens: function(armconfig){
     armconfig.forEach(function(object){
-       //console.log(object["tween"]);
-        // console.log(object);
+
          object["tween"].start();
      })
 
@@ -356,7 +335,7 @@ drawGrid: function(params) {
         grid.name = "gridz";
     }
     scene.add(grid);
-    console.log(scene.getObjectByName( "gridx" ));
+
 
 },
 

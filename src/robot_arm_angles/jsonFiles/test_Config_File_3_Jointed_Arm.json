@@ -1,0 +1,6 @@
+{"arm":[
+    { "id":1,"type":"crane", "length":100, "x":false, "y":true, "z":false },
+    { "id":2, "type":"extender", "length":80, "x":false, "y":false, "z":true },
+    { "id":3, "type":"extender", "length":80, "x":false, "y":false, "z":true },
+    { "id":4, "type":"effector", "length":5, "x":false, "y":true, "z":false }
+]}

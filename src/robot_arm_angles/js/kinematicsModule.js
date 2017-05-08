@@ -11,13 +11,11 @@ var KinematicsModule = {
     var currentAngle = 0;
     var theta1 = arm[0]['object'].rotation.y;
     var x, y, z;
-    console.log('theta1');
-    console.log(theta1);
+
 
     arm.forEach(function(segment){
       if(segment['type']!='effector'){
         currentAngle = currentAngle + segment['object'].rotation.z;
-        console.log('currentAngle: '+currentAngle);
         totalExtent = totalExtent + (segment['length'] * Math.sin(currentAngle));
         totalHeight = totalHeight + (segment['length'] * Math.cos(currentAngle));
 
@@ -109,8 +107,6 @@ var KinematicsModule = {
      */
 
     checkPointLocation: function(point, goalPoint, margin){
-      //console.log("distance");
-      //console.log(point.distanceTo(goalPoint));
         if(point.distanceTo(goalPoint) <= margin){
           return true;
         }
@@ -130,11 +126,7 @@ var KinematicsModule = {
       if(armArray[0]["type"] == "crane"){
         armArray.splice(0,1);
       }
-
-      console.log("GoalPoint: ");
       var goalP = new THREE.Vector2(goalx,goaly);
-      console.log(goalP);
-
       var startPoint = KinematicsModule.calculateStartPoint(armArray);
       var pointsArray = KinematicsModule.calculatePoints(armArray);
       var endEffectorPoint = pointsArray[pointsArray.length-1];
@@ -215,7 +207,6 @@ var KinematicsModule = {
       */
      trigKinematics: function(destx, desty, destz, pitch, arm){
        $('#outputTable tbody tr:first').before('<tr> <td>Trigometric Kinematics </td></tr>');
-       console.log('x: '+ destx + ' y: '+desty+' z: '+destz);
          var hOffset = 0;
          var endEffectorL = 0;
          var isCrane = false;
@@ -340,7 +331,7 @@ var KinematicsModule = {
       return Math.acos(temp);
     }
     else if (temp >= 1){
-      console.log("temp is more than 1 returning 0 radians");
+
       return 0;
     }
     else if( temp <= -1){
